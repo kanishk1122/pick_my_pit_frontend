@@ -233,7 +233,7 @@ FilteredPetList.propTypes = {
     currentPage: PropTypes.number,
     totalPages: PropTypes.number,
   }),
-  onPageChange: PropTypes.func.isRequired,
+  onPageChange: PropTypes.func,
   viewMode: PropTypes.string,
 };
 

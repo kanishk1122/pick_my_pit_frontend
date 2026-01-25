@@ -56,149 +56,159 @@ const itemVariants = {
 
 const Index = () => {
   return (
-    <div className="container mx-auto px-5 my-24 md:my-32 font-sans">
-      
-      {/* Header Section */}
-      <motion.div 
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-        variants={containerVariants}
-        className="text-center mb-16 md:mb-24"
-      >
-        <motion.span variants={itemVariants} className="bg-emerald-50 text-emerald-800 text-sm font-black px-6 py-3 rounded-full inline-flex items-center gap-2 border-2 border-emerald-100 mb-6 shadow-sm">
-          <PawIcon /> FIND YOUR PERFECT MATCH
-        </motion.span>
-        
-        <motion.h1 variants={itemVariants} className="text-5xl md:text-8xl font-black mt-4 mb-8 text-stone-900 leading-[1.1] font-serif tracking-tight">
-          Where Pet Love Stories <br/>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 relative inline-block">
-            Begin.
-            <svg className="absolute w-full h-4 -bottom-2 left-0 text-emerald-400" viewBox="0 0 100 10" preserveAspectRatio="none">
-               <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" opacity="0.4" />
-            </svg>
-          </span>
-        </motion.h1>
-        
-        <motion.p variants={itemVariants} className="text-xl md:text-2xl text-stone-500 max-w-3xl mx-auto leading-relaxed font-medium">
-          Join thousands of happy families who&apos;ve found their perfect companions through our cozy platform.
-        </motion.p>
-      </motion.div>
+    <div className="relative overflow-hidden py-24 md:py-32">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" 
+           style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '32px 32px' }}>
+      </div>
 
-      {/* Stats Section */}
-      <motion.div 
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={containerVariants}
-        className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-32 max-w-6xl mx-auto"
-      >
-        {[
-          { number: "5000+", label: "Pets Adopted", icon: <PawIcon /> },
-          { number: "10k+", label: "Happy Families", icon: <HeartIcon /> },
-          { number: "98%", label: "Success Rate", icon: <StarIcon /> }
-        ].map((stat, index) => (
+      <div className="container mx-auto px-5 relative z-10 font-sans">
+        
+        {/* Header Section */}
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={containerVariants}
+          className="text-center mb-16 md:mb-24"
+        >
+          <motion.span variants={itemVariants} className="bg-emerald-50 text-emerald-800 text-sm font-black px-6 py-3 rounded-full inline-flex items-center gap-2 border-2 border-emerald-100 mb-6 shadow-[4px_4px_0px_0px_rgba(16,185,129,0.2)]">
+            <PawIcon /> FIND YOUR PERFECT MATCH
+          </motion.span>
+          
+          <motion.h1 variants={itemVariants} className="text-5xl md:text-8xl font-black mt-4 mb-8 text-stone-900 leading-[1.1] font-serif tracking-tight">
+            Where Pet Love Stories <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 relative inline-block">
+              Begin.
+              <svg className="absolute w-full h-4 -bottom-2 left-0 text-emerald-400" viewBox="0 0 100 10" preserveAspectRatio="none">
+                 <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" opacity="0.4" />
+              </svg>
+            </span>
+          </motion.h1>
+          
+          <motion.p variants={itemVariants} className="text-xl md:text-2xl text-stone-500 max-w-3xl mx-auto leading-relaxed font-medium">
+            Join thousands of happy families who&apos;ve found their perfect companions through our cozy platform.
+          </motion.p>
+        </motion.div>
+
+        {/* Stats Section */}
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-32 max-w-6xl mx-auto"
+        >
+          {[
+            { number: "5000+", label: "Pets Adopted", icon: <PawIcon />, color: "emerald" },
+            { number: "10k+", label: "Happy Families", icon: <HeartIcon />, color: "rose" },
+            { number: "98%", label: "Success Rate", icon: <StarIcon />, color: "amber" }
+          ].map((stat, index) => (
+            <motion.div 
+              key={index}
+              variants={itemVariants}
+              className="bg-white p-10 rounded-[2.5rem] border-2 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[5px] hover:translate-y-[5px] transition-all duration-300 text-center group relative overflow-hidden"
+            >
+              <div className={`text-${stat.color}-600 mb-6 inline-flex justify-center p-4 bg-${stat.color}-50 rounded-2xl border-2 border-${stat.color}-100 group-hover:rotate-12 transition-transform duration-300`}>
+                {stat.icon}
+              </div>
+              <div className="text-5xl font-black text-stone-900 mb-2 font-serif tracking-tight">{stat.number}</div>
+              <div className="text-stone-500 font-black uppercase tracking-widest text-xs">{stat.label}</div>
+              
+              {/* Decorative circle */}
+              <div className={`absolute -bottom-6 -right-6 w-24 h-24 bg-${stat.color}-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500 -z-10`} />
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Main Feature Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 max-w-7xl mx-auto">
+          
+          {/* Adopt Section */}
           <motion.div 
-            key={index}
-            variants={itemVariants}
-            className="bg-white p-10 rounded-[2rem] border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all duration-300 text-center group"
+            initial={{ x: -50, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="bg-emerald-600 rounded-[3rem] border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-12 flex flex-col items-center text-center relative overflow-hidden group min-h-[700px]"
           >
-            <div className="text-emerald-600 mb-6 inline-flex justify-center p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-100 group-hover:rotate-12 transition-transform duration-300">
-              {stat.icon}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl group-hover:bg-white/20 transition-colors duration-500" />
+            
+            <div className="bg-white/20 p-6 rounded-2xl mb-8 text-white border-2 border-white/30 backdrop-blur-sm group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+              <HomeIcon />
             </div>
-            <div className="text-5xl font-black text-stone-900 mb-2 font-serif tracking-tight">{stat.number}</div>
-            <div className="text-stone-500 font-black uppercase tracking-widest text-xs">{stat.label}</div>
+            
+            <span className="bg-emerald-900/40 text-emerald-50 border border-emerald-400/50 text-xs font-black px-6 py-2.5 rounded-full mb-8 inline-flex items-center gap-2 tracking-widest">
+              <PawIcon /> GIVE A HOME
+            </span>
+            
+            <h2 className="text-5xl md:text-6xl font-black text-white mb-6 font-serif leading-tight">Adopt a <br/>New Friend</h2>
+            
+            <p className="text-lg text-emerald-50 mb-12 leading-relaxed max-w-md font-medium">
+              Every adoption saves two lives - the pet you adopt and the one who takes their place. Join our mission today.
+            </p>
+            
+            <Link 
+              to={`/pets?species=&breed=&type=free&minPrice=0&maxPrice=100000&page=1`} 
+              className="mt-auto bg-white text-emerald-900 border-2 border-black font-black py-5 px-12 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all duration-200 w-full max-w-sm flex items-center justify-center gap-3 text-xl"
+            >
+              Find Your Match
+              <ArrowIcon />
+            </Link>
+            
+            <div className="mt-12 relative group-hover:scale-105 transition-transform duration-500">
+              <div className="absolute inset-0 bg-emerald-400/30 rounded-full blur-2xl transform scale-110 animate-pulse"></div>
+              <img 
+                src={nd1} 
+                className="relative w-64 h-64 object-cover rounded-full border-8 border-white shadow-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500" 
+                alt="Adoption dog" 
+              />
+            </div>
           </motion.div>
-        ))}
-      </motion.div>
 
-      {/* Main Feature Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 max-w-7xl mx-auto">
-        
-        {/* Adopt Section */}
-        <motion.div 
-          initial={{ x: -50, opacity: 0 }}
-          whileInView={{ x: 0, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="bg-emerald-600 rounded-[3rem] border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-12 flex flex-col items-center text-center relative overflow-hidden group"
-        >
-          <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl group-hover:bg-white/20 transition-colors duration-500" />
-          
-          <div className="bg-white/20 p-6 rounded-2xl mb-8 text-white border-2 border-white/30 backdrop-blur-sm group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-            <HomeIcon />
-          </div>
-          
-          <span className="bg-emerald-900/40 text-emerald-50 border border-emerald-400/50 text-xs font-black px-6 py-2.5 rounded-full mb-8 inline-flex items-center gap-2 tracking-widest">
-            <PawIcon /> GIVE A HOME
-          </span>
-          
-          <h2 className="text-5xl font-black text-white mb-6 font-serif leading-tight">Adopt a <br/>New Friend</h2>
-          
-          <p className="text-lg text-emerald-50 mb-12 leading-relaxed max-w-md font-medium">
-            Every adoption saves two lives - the pet you adopt and the one who takes their place.
-          </p>
-          
-          <Link 
-            to={`/pets?species=&breed=&type=free&minPrice=0&maxPrice=100000&page=1`} 
-            className="mt-auto bg-white text-emerald-900 border-2 border-black font-black py-5 px-12 rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all duration-200 w-full max-w-sm flex items-center justify-center gap-3 text-xl"
+          {/* Buy/Sell Section */}
+          <motion.div 
+            initial={{ x: 50, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="bg-[#FFFDF5] rounded-[3rem] border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-12 flex flex-col items-center text-center relative overflow-hidden group min-h-[700px]"
           >
-            Find Your Match
-            <ArrowIcon />
-          </Link>
-          
-          <div className="mt-12 relative group-hover:scale-105 transition-transform duration-500">
-            <div className="absolute inset-0 bg-emerald-400/30 rounded-full blur-2xl transform scale-110 animate-pulse"></div>
-            <img 
-              src={nd1} 
-              className="relative w-56 h-56 object-cover rounded-full border-8 border-white shadow-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500" 
-              alt="Adoption dog" 
-            />
-          </div>
-        </motion.div>
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-yellow-200/20 rounded-full -ml-24 -mb-24 blur-3xl group-hover:bg-yellow-200/30 transition-colors duration-500" />
+            
+            <div className="bg-white p-6 rounded-2xl mb-8 text-stone-900 border-2 border-stone-100 shadow-sm group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500">
+              <HeartIcon />
+            </div>
+            
+            <span className="bg-stone-100 text-stone-600 border border-stone-200 text-xs font-black px-6 py-2.5 rounded-full mb-8 inline-flex items-center gap-2 tracking-widest">
+              <PawIcon /> CONNECT HEARTS
+            </span>
+            
+            <h2 className="text-5xl md:text-6xl font-black text-stone-900 mb-6 font-serif leading-tight">Buy or <br/>Rehome Pets</h2>
+            
+            <p className="text-lg text-stone-600 mb-12 leading-relaxed max-w-md font-medium">
+              Find ethical breeders or help a pet find their next chapter. We ensure safe and happy transitions for everyone.
+            </p>
+            
+            <Link 
+              to='/pets?species=&breed=&type=paid&minPrice=0&maxPrice=100000&page=1' 
+              className="mt-auto bg-[#FCD34D] text-stone-900 border-2 border-black font-black py-5 px-12 rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all duration-200 w-full max-w-sm flex items-center justify-center gap-3 text-xl"
+            >
+              Explore Options
+              <ArrowIcon />
+            </Link>
+            
+            <div className="mt-12 relative group-hover:scale-105 transition-transform duration-500">
+              <div className="absolute inset-0 bg-yellow-200/50 rounded-full blur-2xl transform scale-110 animate-pulse"></div>
+              <img 
+                src={nd2} 
+                className="relative w-64 h-64 object-cover rounded-full border-8 border-white shadow-2xl -rotate-3 group-hover:-rotate-6 transition-transform duration-500" 
+                alt="Sale dog" 
+              />
+            </div>
+          </motion.div>
 
-        {/* Buy/Sell Section */}
-        <motion.div 
-          initial={{ x: 50, opacity: 0 }}
-          whileInView={{ x: 0, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="bg-[#FFFDF5] rounded-[3rem] border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] p-12 flex flex-col items-center text-center relative overflow-hidden group"
-        >
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-yellow-200/20 rounded-full -ml-24 -mb-24 blur-3xl group-hover:bg-yellow-200/30 transition-colors duration-500" />
-          
-          <div className="bg-white p-6 rounded-2xl mb-8 text-stone-900 border-2 border-stone-100 shadow-sm group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500">
-            <HeartIcon />
-          </div>
-          
-          <span className="bg-stone-100 text-stone-600 border border-stone-200 text-xs font-black px-6 py-2.5 rounded-full mb-8 inline-flex items-center gap-2 tracking-widest">
-            <PawIcon /> CONNECT HEARTS
-          </span>
-          
-          <h2 className="text-5xl font-black text-stone-900 mb-6 font-serif leading-tight">Buy or <br/>Rehome Pets</h2>
-          
-          <p className="text-lg text-stone-600 mb-12 leading-relaxed max-w-md font-medium">
-            Whether you're expanding your family or helping a pet find their forever home.
-          </p>
-          
-          <Link 
-            to='/pets?species=&breed=&type=paid&minPrice=0&maxPrice=100000&page=1' 
-            className="mt-auto bg-[#FCD34D] text-stone-900 border-2 border-black font-black py-5 px-12 rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all duration-200 w-full max-w-sm flex items-center justify-center gap-3 text-xl"
-          >
-            Explore Options
-            <ArrowIcon />
-          </Link>
-          
-          <div className="mt-12 relative group-hover:scale-105 transition-transform duration-500">
-            <div className="absolute inset-0 bg-yellow-200/50 rounded-full blur-2xl transform scale-110 animate-pulse"></div>
-            <img 
-              src={nd2} 
-              className="relative w-56 h-56 object-cover rounded-full border-8 border-white shadow-2xl -rotate-3 group-hover:-rotate-6 transition-transform duration-500" 
-              alt="Sale dog" 
-            />
-          </div>
-        </motion.div>
-
+        </div>
       </div>
     </div>
   );

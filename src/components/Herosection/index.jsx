@@ -17,6 +17,41 @@ const PlayIcon = () => (
   </svg>
 );
 
+const ScrollIndicator = () => (
+  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center">
+    <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center p-1">
+      <motion.div 
+        animate={{ y: [0, 12, 0] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        className="w-1.5 h-1.5 bg-[#FCD34D] rounded-full"
+      />
+    </div>
+  </div>
+);
+
+const FloatingPaws = () => (
+  <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 opacity-20">
+    {[...Array(6)].map((_, i) => (
+      <motion.div
+        key={i}
+        initial={{ y: "110%", x: `${Math.random() * 100}%`, rotate: Math.random() * 360 }}
+        animate={{ y: "-10%", x: `${Math.random() * 100}%`, rotate: Math.random() * 360 }}
+        transition={{ 
+          duration: 15 + Math.random() * 10, 
+          repeat: Infinity, 
+          delay: i * 2,
+          ease: "linear" 
+        }}
+        className="absolute text-white"
+      >
+        <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 5.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 2.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 5.5c-2.5 0-4.5 2-4.5 4.5v2.5h9v-2.5c0-2.5-2-4.5-4.5-4.5z" />
+        </svg>
+      </motion.div>
+    ))}
+  </div>
+);
+
 const HeroSection = () => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
@@ -36,6 +71,8 @@ const HeroSection = () => {
         <div className="absolute inset-0 w-full h-full">
           {/* Dark Gradient Overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10" />
+          
+          <FloatingPaws />
           
           <video
             src={herosectionvideo}
@@ -118,6 +155,8 @@ const HeroSection = () => {
             </motion.div>
           </div>
         </div>
+        
+        <ScrollIndicator />
 
       </motion.div>
     </div>
