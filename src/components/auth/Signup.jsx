@@ -69,10 +69,9 @@ const Signup = ({ email, setEmail, password, setPassword }) => {
 
     // Final Submit
     try {
-      const encryptedPassword = encrypter(password);
       const response = await axios.post(`${USER.Register}`, {
         email,
-        password: encryptedPassword,
+        password: password,
         firstname,
         lastname,
         referralCode,

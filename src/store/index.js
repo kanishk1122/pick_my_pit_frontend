@@ -6,6 +6,7 @@ import addressReducer from "./slices/addressSlice";
 import userReducer from "./slices/userSlice";
 import breedReducer from "./slices/breedSlice";
 import allSpeciesReducer from "./slices/allSpeciesSlice";
+import blogReducer from "./slices/blogSlice";
 
 // Configure the store
 export const store = configureStore({
@@ -16,6 +17,7 @@ export const store = configureStore({
     user: userReducer,
     breeds: breedReducer,
     allSpecies: allSpeciesReducer,
+    blogs: blogReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

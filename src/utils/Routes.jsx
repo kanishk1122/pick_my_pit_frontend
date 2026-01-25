@@ -15,14 +15,14 @@ import FilteredPetList from "../components/Pet/FilteredPetList.jsx";
 import Service from "../components/Service/Index.jsx";
 import Contact from "../components/Contact/Index.jsx";
 import Blog from "../components/Blog/Index.jsx";
+import BlogDetail from "../components/Blog/BlogDetail.jsx";
 import About from "../components/About/Index.jsx";
 import TermsOfService from "../components/TermsOfService/Index.jsx";
 import Faq from "../components/Faq/Index.jsx";
 import PrivacyPolicy from "../components/PrivacyPolicy/Index.jsx";
 import HelpCenter from "../components/HelpCenter/Index.jsx";
-import {USER} from  "../Consts/apikeys.js"
-
-
+import Misc from "../components/misc/index.jsx"
+import { USER } from "../Consts/apikeys.js";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -62,9 +62,10 @@ function App() {
               <Route path="/create-post" element={<CreatePost />} />
               <Route path="/pets" element={<PetList />} />
               <Route path="/pets/filter" element={<FilteredPetList />} />
-              <Route path='/services' element={<Service />}/>
+              <Route path="/services" element={<Service />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogDetail />} />
               <Route path="/faq" element={<Faq />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
@@ -84,6 +85,7 @@ function App() {
       {/* Routes without Navbar */}
       <Route path="/auth" element={<Auth />} />
       <Route path="/default" element={<Deafultpage />} />
+      <Route path="/misc" element = {<Misc/>} />
     </Routes>
   );
 }
@@ -94,7 +96,6 @@ const MainLayout = ({ children }) => {
     // 1. Global Theme Background (Cream) & Text Color
     // overflow-x-hidden prevents horizontal scrollbars from animations
     <div className="min-h-screen w-full bg-[#FDFCF8] text-stone-800 font-sans selection:bg-emerald-200 selection:text-emerald-900 overflow-x-hidden relative">
-      
       {/* 2. Floating Header Container */}
       {/* pointer-events-none allows clicking on the page 'through' the empty space on sides of the navbar */}
       <header className="fixed top-0 left-0 w-[99vw] z-[9999] pt-4 md:pt-6 px-0 sm:px-4 flex justify-center pointer-events-none">
@@ -106,10 +107,7 @@ const MainLayout = ({ children }) => {
 
       {/* 3. Main Content Area */}
       {/* Added enough top padding (pt-32) so the first section isn't hidden behind the floating navbar */}
-      <main className="w-full pt-32 md:pt-36 pb-12 mx-auto">
-        {children}
-      </main>
-
+      <main className="w-full pt-32 md:pt-36 pb-12 mx-auto">{children}</main>
     </div>
   );
 };
