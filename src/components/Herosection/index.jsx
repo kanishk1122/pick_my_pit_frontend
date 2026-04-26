@@ -149,7 +149,7 @@ const HeroSection = () => {
                 </button>
               </Link>
               
-              <button className="brand-button w-full sm:w-auto text-xl px-10 py-5 bg-white/10 text-white border-white/40 hover:bg-white hover:text-stone-900 transition-colors">
+              <button className="brand-button w-full sm:w-auto text-xl px-10 py-5 bg-white/10  border-white/40 hover:bg-white hover:text-stone-900 transition-colors">
                 How it Works
               </button>
             </motion.div>

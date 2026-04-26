@@ -4,21 +4,30 @@ import Profileroutes from "./Profileroutes.jsx"; // Nested routes
 import ReferralLink from "./ReferralLink.jsx";
 
 const Index = () => {
-  const userId = "user-id-from-context-or-props"; // Replace with actual user ID
-
   return (
-    <div className="h-fit flex flex-col md:flex-row -mb-6 bg-white rounded-t-[30px] mt-20 gap-2 border-y-2 border-black">
-      {/* Sidebar */}
-      <div className="w-full md:w-[260px] md:min-w-[260px] md:border-r border-b md:border-b-0 border-black py-4 max-md:hidden">
-        <Sidebar />
+    <div className="min-h-screen bg-[#FFFDF5] pt-24 pb-12 px-4 md:px-6">
+      <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row gap-8 relative">
+
+        {/* Sidebar Holder - Sticky on Desktop */}
+        <aside className="w-full md:w-80 md:flex-shrink-0">
+          <div className="sticky top-28">
+            <Sidebar />
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 bg-white rounded-[2.5rem] border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] overflow-hidden min-h-[70vh]">
+          <div className="p-6 md:p-10 h-full">
+            <Profileroutes />
+          </div>
+        </main>
       </div>
 
-      {/* Main Content: Nested Routes */}
-      <div className="w-full md:w-[calc(100%-260px)] p-5">
-        <Profileroutes />
-      </div>
-       <div className="w-full md:w-[260px] md:min-w-[260px] md:border-r border-b md:border-b-0 border-black py-4 hidden bottom-0 right-0 bg-white max-md:flex max-md:fixed bottom:0 ">
-        <Sidebar />
+      {/* Mobile Bottom Navigation (Hidden on Desktop) */}
+      <div className="fixed bottom-6 left-4 right-4 z-50 md:hidden">
+        <div className="bg-black/95 backdrop-blur-xl border-2 border-white/20 rounded-3xl p-2 shadow-2xl">
+          <Sidebar isMobile />
+        </div>
       </div>
     </div>
   );

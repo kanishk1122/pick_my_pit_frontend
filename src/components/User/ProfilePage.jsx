@@ -1,104 +1,125 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { motion } from "framer-motion";
 import AddressActions from "./AddressActions";
-import Custominputfields from "../Custominputfields";
 
 const ProfilePage = ({ user }) => {
-  const [userpic, setUserpic] = useState(user?.userpic);
-  const [firstname, setFirstName] = useState();
-  const [lastname, setLastName] = useState();
-  const [email, setEmail] = useState();
-  const [phone, setPhone] = useState("Not Provided Yet");
-  const [country, setCountry] = useState("Not Provided Yet");
-
-  const [addresses, setAddresses] = useState([
-    {
-      country: "Not Provided Yet",
-      city: "Not Provided Yet",
-      zip: "Not Provided Yet",
-      district: "Not Provided Yet",
-      street: "Not Provided Yet",
-      building: "Not Provided Yet",
-      floor: "Not Provided Yet",
-      location: "Not Provided Yet",
-    },
-  ]);
-
-  useEffect(() => {
-    if (user) {
-      setFirstName(user.firstname);
-      setLastName(user.lastname);
-      setEmail(user.email);
-      console.log(user);
-      if (user?.phone) {
-        setPhone(user.phone);
-      }
-      if (user?.addresses && user.addresses.length > 0) {
-        setAddresses(user.addresses);
-      }
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { staggerChildren: 0.1, duration: 0.5 }
     }
-  }, [user]);
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: { opacity: 1, scale: 1 }
+  };
 
   return (
-    <div className="w-full md:w-[78vw] px-4 md:px-0">
-      <div className="flex w-full items-center flex-col">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl text-start pl-4 md:pl-20 mt-6 md:mt-10 w-full border-b pb-2 border-black font-bold">
-          Personal Information
-        </h1>
-        
-        <div className="w-full gap-4 md:gap-10 flex flex-col md:flex-row pl-4 md:pl-20 pt-3 relative pb-3 border-b border-black">
-          <div className="size-[80px] md:size-[100px] relative rounded-full overflow-hidden w-fit mx-auto md:mx-0">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="w-full space-y-12"
+    >
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-center gap-8 border-b-2 border-stone-100 pb-12">
+        <motion.div variants={itemVariants} className="relative group">
+          <div className="absolute inset-0 bg-emerald-500 rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+          {user?.userpic ? (
             <img
-              src={user?.userpic}
-              className="size-[80px] md:size-[100px] rounded-full object-cover"
+              src={user.userpic}
+              className="size-32 md:size-40 rounded-[2.5rem] border-4 border-black object-cover relative z-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all duration-300"
               alt="User profile"
             />
-          </div>
-          
-          <div className="w-full md:w-[70%]">
-            <p className="text-2xl md:text-4xl font-semibold mb-2">About me</p>
-            <textarea
-              name=""
-              value={
-                user?.about
-                  ? user.about.replace(/\*\*(.*?)\*\*/g, '$1')
-                  : "didn't get so much yet about you"
-              }
-              className="w-full h-[20vh] md:h-[32vh] resize-none focus:ring-0 focus:outline-none text-sm md:text-base"
-              readOnly
-              id=""
-            ></textarea>
-          </div>
-        </div>
-        
-        <div className="flex flex-col md:flex-row w-full justify-around gap-6 md:gap-0 px-4 md:px-20 mt-6 md:mt-4">
-          <div className="w-full md:w-1/3">
-            <p className="text-sm text-gray-600 font-medium mb-1">First Name</p>
-            <p className="text-lg md:text-xl font-semibold">{firstname || "Not Provided"}</p>
-          </div>
-          <div className="w-full md:w-1/3">
-            <p className="text-sm text-gray-600 font-medium mb-1">Last Name</p>
-            <p className="text-lg md:text-xl font-semibold">{lastname || "Not Provided"}</p>
-          </div>
-        </div>
-        
-        <div className="flex flex-col md:flex-row w-full justify-around gap-6 md:gap-0 px-4 md:px-20 mt-6 md:mt-4">
-          <div className="w-full md:w-1/3">
-            <p className="text-sm text-gray-600 font-medium mb-1">Email</p>
-            <p className="text-lg md:text-xl font-semibold break-words">{email || "Not Provided"}</p>
-          </div>
-          <div className="w-full md:w-1/3">
-            <p className="text-sm text-gray-600 font-medium mb-1">Phone</p>
-            <p className="text-lg md:text-xl font-semibold">{phone}</p>
-          </div>
-        </div>
+          ) : (
+            <div className="size-32 md:size-40 rounded-[2.5rem] border-4 border-black bg-stone-100 flex items-center justify-center relative z-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <UserIcon className="size-16 text-stone-300" />
+            </div>
+          )}
+        </motion.div>
 
-        <div className="w-full mt-4 flex items-start justify-around flex-wrap px-4 md:px-0">
-          <AddressActions />
+        <div className="text-center md:text-left">
+          <motion.h1 variants={itemVariants} className="text-4xl md:text-6xl font-serif font-black text-stone-900 mb-2">
+            Hey, {user?.firstname || "Friend"}! 👋
+          </motion.h1>
+          <motion.p variants={itemVariants} className="text-stone-500 font-bold tracking-widest uppercase text-sm">
+            Manage your pawsome profile and pets
+          </motion.p>
         </div>
       </div>
-    </div>
+
+      {/* Info Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* About Card */}
+        <motion.div
+          variants={itemVariants}
+          className="lg:col-span-2 bg-[#FFFDF5] rounded-[2.5rem] border-2 border-black p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+          <h2 className="text-2xl font-serif font-black mb-6 flex items-center gap-3">
+            <span className="p-2 bg-emerald-100 rounded-xl"><UserIcon /></span>
+            About Me
+          </h2>
+          <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border-2 border-stone-100 h-48 overflow-y-auto">
+            <p className="text-stone-600 font-medium leading-relaxed italic">
+              {user?.about?.replace(/\*\*(.*?)\*\*/g, '$1') || "No bio yet. Tell the community about your love for pets!"}
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Quick Stats/Info */}
+        <motion.div variants={itemVariants} className="space-y-6">
+          <div className="bg-white rounded-[2rem] border-2 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <span className="text-xs font-black text-stone-400 uppercase tracking-widest mb-1 block">Full Name</span>
+            <p className="text-xl font-serif font-black text-stone-900">{user?.firstname} {user?.lastname}</p>
+          </div>
+          <div className="bg-white rounded-[2rem] border-2 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <span className="text-xs font-black text-stone-400 uppercase tracking-widest mb-1 block">Email Address</span>
+            <p className="text-xl font-serif font-black text-stone-900 break-all">{user?.email}</p>
+          </div>
+          <div className="bg-white rounded-[2rem] border-2 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <span className="text-xs font-black text-stone-400 uppercase tracking-widest mb-1 block">Phone Number</span>
+            <p className="text-xl font-serif font-black text-stone-900">{user?.phone || "Not Verified"}</p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Address Section */}
+      <motion.div variants={itemVariants} className="pt-8">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="h-px flex-1 bg-stone-200" />
+          <h2 className="text-2xl font-serif font-black px-6 py-3 bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            Saved Addresses
+          </h2>
+          <div className="h-px flex-1 bg-stone-200" />
+        </div>
+        <div className="bg-emerald-50 rounded-[3rem] border-2 border-black p-8 md:p-12 relative overflow-hidden flex flex-col items-center justify-center min-h-[150px]">
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -mr-32 -mb-32 blur-3xl" />
+          {user?.addresses?.length > 0 ? (
+            <AddressActions />
+          ) : (
+            <div className="relative z-10 text-center">
+              <p className="text-emerald-900 font-black text-lg mb-2">No Saved Addresses</p>
+              <p className="text-emerald-700/60 font-medium text-sm">Add your first address in settings to see it here!</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
+
+// Simple Icon for the Profile Card
+// Simple Icon for the Profile Card
+const UserIcon = ({ className }) => (
+  <svg className={className || "w-6 h-6 text-emerald-600"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
 
 export default ProfilePage;

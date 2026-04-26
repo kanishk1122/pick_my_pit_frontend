@@ -27,59 +27,132 @@ const FeaturedPets = () => {
 
   const featuredPosts = posts.slice(0, 3);
 
-  if (!loading && featuredPosts.length === 0) return null;
+  // Don't hide the entire section if there are no posts - show loading or empty state instead
 
   return (
     <section className="py-24 bg-[#FDFCF8]">
       <div className="container mx-auto px-5">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-          <div className="max-w-2xl">
-            <span className="bg-amber-100 text-amber-800 text-xs font-black px-4 py-2 rounded-full border-2 border-amber-200 mb-4 inline-block tracking-widest uppercase">
-              New arrivals
-            </span>
-            <h2 className="text-5xl md:text-7xl font-black text-stone-900 font-serif leading-tight">
-              Latest <span className="text-emerald-600">Furry Friends</span>
-            </h2>
-          </div>
-          <Link 
-            to="/pets" 
-            className="group flex items-center gap-3 font-black text-xl text-stone-900 hover:text-emerald-600 transition-colors"
+        <motion.div
+          className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <motion.div
+            className="max-w-2xl"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, delay: 0.2 }}
           >
-            View All Pets 
-            <div className="p-3 rounded-full border-2 border-black group-hover:bg-black group-hover:text-white transition-all">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </div>
-          </Link>
-        </div>
+            <motion.span
+              className="bg-amber-100 text-amber-800 text-xs font-black px-4 py-2 rounded-full border-2 border-amber-200 mb-4 inline-block tracking-widest uppercase"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              New arrivals
+            </motion.span>
+            <motion.h2
+              className="text-5xl md:text-7xl font-black text-stone-900 font-serif leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+            >
+              Latest <span className="text-emerald-600">Furry Friends</span>
+            </motion.h2>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+          >
+            <Link
+              to="/pets"
+              className="group flex items-center gap-3 font-black text-xl text-stone-900 hover:text-emerald-600 transition-colors"
+            >
+              View All Pets
+              <div className="p-3 rounded-full border-2 border-black group-hover:bg-black group-hover:text-white transition-all">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </div>
+            </Link>
+          </motion.div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.15,
+                delayChildren: 0.2
+              }
+            }
+          }}
+        >
           {loading ? (
             [...Array(3)].map((_, i) => (
-              <div key={i} className="h-[500px] bg-stone-100 rounded-[2.5rem] animate-pulse border-2 border-stone-200" />
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1 }}
+                className="h-[500px] bg-stone-100 rounded-[2.5rem] animate-pulse border-2 border-stone-200"
+              />
             ))
+          ) : featuredPosts.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="col-span-full text-center py-20"
+            >
+              <p className="text-2xl font-bold text-stone-400">
+                No pets available right now. Check back soon! 🐾
+              </p>
+            </motion.div>
           ) : (
             featuredPosts.map((pet, index) => (
               <motion.div
                 key={pet._id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                variants={{
+                  hidden: {
+                    opacity: 0,
+                    y: 50,
+                    scale: 0.95
+                  },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: {
+                      duration: 0.6,
+                      ease: [0.25, 0.46, 0.45, 0.94]
+                    }
+                  }
+                }}
               >
                 <Link to={`/pet/${pet.slug}`} className="group block h-full">
                   <div className="bg-white rounded-[2.5rem] border-2 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[5px] hover:translate-y-[5px] transition-all duration-300 flex flex-col h-full overflow-hidden">
                     <div className="relative h-72 overflow-hidden border-b-2 border-black">
-                      <img 
-                        src={pet.images[0]} 
+                      <img
+                        src={pet.images[0]}
                         alt={pet.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                       <div className="absolute top-4 left-4">
-                        <span className={`px-4 py-2 rounded-xl border-2 border-black font-black text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
-                          pet.type === 'free' ? 'bg-[#34D399] text-white' : 'bg-[#FCD34D] text-stone-900'
-                        }`}>
+                        <span className={`px-4 py-2 rounded-xl border-2 border-black font-black text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${pet.type === 'free' ? 'bg-[#34D399] text-white' : 'bg-[#FCD34D] text-stone-900'
+                          }`}>
                           {pet.type === 'free' ? 'Adopt Me' : 'For Sale'}
                         </span>
                       </div>
@@ -130,7 +203,7 @@ const FeaturedPets = () => {
               </motion.div>
             ))
           )}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

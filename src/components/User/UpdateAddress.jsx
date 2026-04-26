@@ -12,7 +12,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Fix for default marker icon issue with webpack
+// Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -51,7 +51,11 @@ const UpdateAddress = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLocating, setIsLocating] = useState(false);
   const mapRef = useRef();
+
+  // REPLACE WITH YOUR KEY
+  const LOCATIONIQ_API_KEY = "YOUR_LOCATIONIQ_API_KEY";
 
   useEffect(() => {
     getAddresses(currentPage);
@@ -68,29 +72,42 @@ const UpdateAddress = () => {
       landmark: address.landmark || "",
       isDefault: address.isDefault,
     });
-    // Scroll to form on mobile
+
+    if (address.location && address.location.coordinates) {
+      const [lng, lat] = address.location.coordinates;
+      setSelectedPosition([lat, lng]);
+    }
+
     if (window.innerWidth < 768) {
       setTimeout(() => {
         document
-          .querySelector(".address-form")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+          .getElementById("address-form-section")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 200);
     }
   };
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      title: "Delete Address?",
+      text: "This action cannot be undone.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonColor: "#059669",
+      cancelButtonColor: "#d1d5db",
+      confirmButtonText: "Yes, remove it!",
+      background: "#fff",
+      customClass: {
+        popup: "border-2 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+        confirmButton: "border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+        cancelButton: "border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+      }
     });
 
     if (result.isConfirmed) {
       const deleteResult = await deleteAddress(id);
       if (deleteResult.meta.requestStatus === "fulfilled") {
-        Swal.fire("Deleted!", "Your address has been deleted.", "success");
+        Swal.fire("Deleted!", "Address removed successfully.", "success");
       } else {
         Swal.fire("Error!", "Failed to delete address.", "error");
       }
@@ -100,15 +117,17 @@ const UpdateAddress = () => {
   const cancelEdit = () => {
     setEditingId(null);
     setFormData(initialFormState);
+    setSelectedPosition(null);
   };
 
+  // --- MAP LOGIC ---
   const LocationMarker = () => {
     const map = useMapEvents({
       click(e) {
         const { lat, lng } = e.latlng;
         setSelectedPosition([lat, lng]);
         map.flyTo(e.latlng, map.getZoom());
-        reverseGeocode([lat, lng]);
+        reverseGeocodeLocationIQ(lat, lng);
       },
     });
 
@@ -123,75 +142,77 @@ const UpdateAddress = () => {
     return null;
   };
 
-  const reverseGeocode = async (coords) => {
-    const [lat, lon] = coords;
+  const cleanCityName = (cityName) => {
+    if (!cityName) return "";
+    return cityName
+      .replace(/Municipal Corporation/gi, "")
+      .replace(/Nagar Nigam/gi, "")
+      .replace(/Cantonment Board/gi, "")
+      .trim();
+  };
+
+  const reverseGeocodeLocationIQ = async (lat, lng) => {
     try {
+     
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+        `https://us1.locationiq.com/v1/reverse.php?key=${import.meta.env.VITE_REACT_APP_GEO_API}&lat=${lat}&lon=${lng}&format=json`
       );
-      if (!response.ok) throw new Error("Reverse geocoding failed");
+      if (!response.ok) throw new Error("Geocoding failed");
       const data = await response.json();
+
       if (data && data.address) {
-        const { address } = data;
+        const addr = data.address;
+        
+        let streetParts = [];
+        if (addr.house_number) streetParts.push(addr.house_number);
+        if (addr.building) streetParts.push(addr.building);
+        if (addr.road) streetParts.push(addr.road);
+        
+        let street = streetParts.length > 0 ? streetParts.join(", ") : "";
+        if (!street) street = addr.suburb || addr.neighbourhood || "";
+
+        let rawCity = addr.city || addr.town || addr.village || addr.municipality || "";
+        const city = cleanCityName(rawCity);
+
+        let landmarkParts = [];
+        if (data.display_name && data.display_name.split(",")[0] !== street) {
+            if (addr.suburb) landmarkParts.push(addr.suburb);
+            if (addr.neighbourhood && !landmarkParts.includes(addr.neighbourhood)) landmarkParts.push(addr.neighbourhood);
+        }
+        const landmark = landmarkParts.join(", ");
+
         setFormData((prev) => ({
           ...prev,
-          street: address.road || "",
-          city: address.city || address.town || address.village || "",
-          state: address.state || "",
-          postalCode: address.postcode || "",
-          country: address.country || "India",
+          street: street,
+          city: city,
+          state: addr.state || "",
+          postalCode: addr.postcode || "",
+          country: addr.country || "India",
+          landmark: landmark,
         }));
       }
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "Could not fetch address for the location.", "error");
     }
   };
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      Swal.fire(
-        "Geolocation Not Supported",
-        "Your browser does not support geolocation.",
-        "error"
-      );
+      Swal.fire("Error", "Geolocation not supported.", "error");
       return;
     }
-
-    // Geolocation API is blocked on insecure origins in most modern browsers.
-    if (
-      window.location.protocol !== "https:" &&
-      window.location.hostname !== "localhost"
-    ) {
-      Swal.fire(
-        "Secure Connection Required",
-        "Getting your location automatically only works on a secure (HTTPS) connection. This feature will work when the site is deployed. For now, please select your location manually on the map.",
-        "warning"
-      );
-      return;
-    }
-
+    setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         setSelectedPosition([latitude, longitude]);
-        if (mapRef.current) {
-          mapRef.current.flyTo([latitude, longitude], 15);
-        }
-        reverseGeocode([latitude, longitude]);
+        if (mapRef.current) mapRef.current.flyTo([latitude, longitude], 17);
+        reverseGeocodeLocationIQ(latitude, longitude);
+        setIsLocating(false);
       },
       (error) => {
-        console.error("Geolocation error:", error);
-        let message = "Could not get current location. Please try again.";
-        if (error.code === error.PERMISSION_DENIED) {
-          message =
-            "Location access was denied. To use this feature, please enable location permissions for this site in your browser settings.";
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          message = "Location information is unavailable.";
-        } else if (error.code === error.TIMEOUT) {
-          message = "The request to get user location timed out.";
-        }
-        Swal.fire("Error", message, "error");
+        setIsLocating(false);
+        Swal.fire("Error", "Could not retrieve location.", "error");
       }
     );
   };
@@ -203,42 +224,22 @@ const UpdateAddress = () => {
       return;
     }
     setIsSubmitting(true);
-
     try {
-      const [lon, lat] = selectedPosition;
-      // 2. Prepare the data for the backend
+      const [lat, lon] = selectedPosition;
       const addressData = {
         ...formData,
-        location: {
-          type: "Point",
-          coordinates: [parseFloat(lat), parseFloat(lon)],
-        },
+        location: { type: "Point", coordinates: [parseFloat(lon), parseFloat(lat)] },
       };
-
-      // 3. Dispatch the action
-      const action = editingId
-        ? updateAddress(editingId, addressData)
-        : addAddress(addressData);
-
+      const action = editingId ? updateAddress(editingId, addressData) : addAddress(addressData);
       const result = await action;
-
       if (result.meta.requestStatus === "fulfilled") {
-        Swal.fire({
-          icon: "success",
-          title: "Success!",
-          text: `Address ${editingId ? "updated" : "added"} successfully`,
-        });
+        Swal.fire({ icon: "success", title: "Woohoo!", text: `Address saved successfully!` });
         cancelEdit();
       } else {
-        throw new Error(result.payload || "Failed to save address");
+        throw new Error(result.payload || "Failed to save");
       }
     } catch (error) {
-      console.error("Address submission error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: error.message || "Failed to save address",
-      });
+      Swal.fire({ icon: "error", title: "Oops!", text: error.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -246,408 +247,306 @@ const UpdateAddress = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
+  // --- STYLES FOR THEME ---
+  const cardStyle = "bg-white border-2 border-black rounded-3xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200";
+  const inputStyle = "w-full p-3 bg-white border-2 border-black rounded-xl focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(16,185,129,1)] transition-all font-medium placeholder-gray-400";
+  const labelStyle = "block text-sm font-bold text-gray-800 mb-2 font-serif tracking-wide";
+  const btnPrimary = "w-full py-3.5 bg-[#10B981] text-white font-bold rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all flex items-center justify-center gap-2 text-lg";
+  const btnSecondary = "py-2 px-4 bg-[#FCD34D] text-black font-bold rounded-lg border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all text-sm flex items-center justify-center gap-2";
+  const btnDanger = "py-2 px-4 bg-white text-red-600 font-bold rounded-lg border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all text-sm flex items-center justify-center gap-2";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 py-6 md:py-12 px-3 sm:px-4 relative overflow-hidden rounded-xl md:rounded-3xl">
-      {/* Noise Effect Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.015] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Decorative Background Elements - Hidden on mobile for performance */}
-      <div className="hidden md:block absolute top-0 left-0 w-96 h-96 bg-emerald-200/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-      <div className="hidden md:block absolute bottom-0 right-0 w-96 h-96 bg-green-200/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-
-      <div className="relative bg-white/80 backdrop-blur-sm p-4 sm:p-6 md:p-8 lg:p-12 rounded-2xl md:rounded-3xl max-w-5xl mx-auto shadow-xl border border-white/50">
-        {/* Header */}
-        <div className="mb-8 md:mb-12 text-center">
-          <div className="inline-flex items-center gap-2 md:gap-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-4 md:px-6 py-1.5 md:py-2 rounded-full mb-3 md:mb-4 shadow-lg text-sm md:text-base">
-            <svg
-              className="w-4 h-4 md:w-5 md:h-5"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
-            </svg>
-            <span className="font-semibold">Address Management</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-            Manage Your{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-green-600">
-              Addresses
-            </span>
-          </h2>
-          <p className="text-gray-600 mt-2 text-sm md:text-base">
-            Keep your delivery locations up to date
+    <div className="min-h-screen bg-[#FFFBF5] py-12 px-4 font-sans text-gray-900">
+      
+      <div className="max-w-5xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="text-center mb-12">
+        
+          <h1 className="text-4xl md:text-5xl font-extrabold font-serif text-gray-900 mb-4 leading-tight">
+            Where Should We Send <br/>
+            <span className="text-[#10B981] underline decoration-4 underline-offset-4 decoration-[#FCD34D]">Your Goodies?</span>
+          </h1>
+          <p className="text-gray-600 font-medium max-w-lg mx-auto">
+            Manage your delivery locations so your furry friends never have to wait for their treats.
           </p>
         </div>
 
-        {/* Saved Addresses List */}
-        <div className="mb-8 md:mb-12">
-          <h3 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
-            <div className="w-1 h-6 md:h-8 bg-gradient-to-b from-emerald-500 to-green-600 rounded-full" />
-            Saved Addresses
-          </h3>
+        {/* --- SAVED ADDRESSES GRID --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+          {/* Loading Skeleton */}
+          {loading && Array(2).fill(0).map((_, i) => (
+             <div key={i} className="h-48 rounded-3xl bg-white border-2 border-black p-6 animate-pulse opacity-50"></div>
+          ))}
 
-          {loading && (
-            <div className="flex items-center justify-center py-8 md:py-12">
-              <div className="animate-spin rounded-full h-10 w-10 md:h-12 md:w-12 border-4 border-emerald-500 border-t-transparent" />
-            </div>
-          )}
-
-          {!loading && addresses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              {addresses.map((address) => (
-                <div
-                  key={address._id}
-                  className={`group relative p-4 md:p-6 rounded-xl md:rounded-2xl transition-all duration-300 ${
-                    editingId === address._id
-                      ? "bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-500 shadow-lg md:scale-105"
-                      : "bg-white border-2 border-gray-100 hover:border-emerald-200 hover:shadow-md"
-                  }`}
-                >
-                  {/* Default Badge */}
-                  {address.isDefault && (
-                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
-                      <svg
-                        className="w-3 h-3"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
-                      </svg>
-                      <span className="hidden sm:inline">Default</span>
-                    </div>
-                  )}
-
-                  {/* Address Content */}
-                  <div className="mb-3 md:mb-4">
-                    <div className="flex items-start gap-2 md:gap-3 mb-2">
-                      <svg
-                        className="w-4 h-4 md:w-5 md:h-5 text-emerald-600 flex-shrink-0 mt-1"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
-                      </svg>
-                      <div>
-                        <p className="font-semibold text-gray-900 leading-relaxed text-sm md:text-base">
-                          {address.street}
-                        </p>
-                        {address.landmark && (
-                          <p className="text-xs md:text-sm text-gray-600 mt-1">
-                            Near {address.landmark}
-                          </p>
-                        )}
-                        <p className="text-xs md:text-sm text-gray-600 mt-1">
-                          {address.city}, {address.state} - {address.postalCode}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {address.country}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(address)}
-                      className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg md:rounded-xl hover:shadow-lg transition-all duration-300 font-medium text-xs md:text-sm"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5 md:w-4 md:h-4"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
-                      </svg>
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(address._id)}
-                      className="px-3 md:px-4 py-2 bg-red-50 text-red-600 rounded-lg md:rounded-xl hover:bg-red-100 transition-all duration-300 font-medium text-xs md:text-sm border border-red-200"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5 md:w-4 md:h-4"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
-                      </svg>
-                    </button>
-                  </div>
+          {!loading && addresses.map((addr) => (
+            <div key={addr._id} className={cardStyle + " relative p-6 md:p-8 flex flex-col justify-between"}>
+              
+              {/* Default Badge */}
+              {addr.isDefault && (
+                <div className="absolute -top-4 -right-2 bg-[#FCD34D] border-2 border-black px-3 py-1 rounded-full font-bold text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rotate-3 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  PRIMARY HOME
                 </div>
-              ))}
-            </div>
-          ) : (
-            !loading && (
-              <div className="text-center py-12 md:py-16 bg-gradient-to-br from-gray-50 to-emerald-50/30 rounded-xl md:rounded-2xl border-2 border-dashed border-gray-200">
-                <svg
-                  className="w-12 h-12 md:w-16 md:h-16 mx-auto text-gray-400 mb-4"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z" />
-                </svg>
-                <p className="text-gray-600 font-medium text-sm md:text-base">
-                  No saved addresses found
-                </p>
-                <p className="text-xs md:text-sm text-gray-500 mt-1">
-                  Add your first address below
-                </p>
-              </div>
-            )
-          )}
-        </div>
+              )}
 
-        {/* Pagination Controls */}
-        {pagination && pagination.totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-8 mb-8">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <span className="text-gray-700">
-              Page {pagination.page} of {pagination.totalPages}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) =>
-                  Math.min(prev + 1, pagination.totalPages)
-                )
-              }
-              disabled={currentPage === pagination.totalPages}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        )}
-
-        {/* Address Form */}
-        <div className="address-form bg-gradient-to-br from-emerald-50/50 to-green-50/50 p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl border border-emerald-100">
-          <h3 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
-            <div className="w-1 h-6 md:h-8 bg-gradient-to-b from-emerald-500 to-green-600 rounded-full" />
-            {editingId ? "Edit Address" : "Add New Address"}
-          </h3>
-
-          <div className="mb-4">
-            <label className="block text-xs md:text-sm font-semibold mb-1.5 md:mb-2 text-gray-700">
-              Select Location on Map
-            </label>
-            <div className="h-64 w-full rounded-lg overflow-hidden border-2 border-gray-200">
-              <MapContainer
-                center={[20.5937, 78.9629]}
-                zoom={5}
-                style={{ height: "100%", width: "100%" }}
-                whenCreated={(mapInstance) => {
-                  mapRef.current = mapInstance;
-                }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <LocationMarker />
-                {selectedPosition && (
-                  <ChangeView center={selectedPosition} zoom={15} />
-                )}
-              </MapContainer>
-            </div>
-            <button
-              type="button"
-              onClick={handleGetCurrentLocation}
-              className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Use My Current Location
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-            {/* Street Address */}
-            <div className="form-group">
-              <label className="block text-xs md:text-sm font-semibold mb-1.5 md:mb-2 text-gray-700">
-                Street Address <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="street"
-                value={formData.street}
-                onChange={handleChange}
-                className="w-full p-3 md:p-4 text-sm md:text-base bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:border-emerald-500 focus:ring-0 transition-all outline-none hover:border-emerald-300"
-                placeholder="Enter your street address"
-                required
-              />
-            </div>
-
-            {/* Landmark */}
-            <div className="form-group">
-              <label className="block text-xs md:text-sm font-semibold mb-1.5 md:mb-2 text-gray-700">
-                Landmark
-              </label>
-              <input
-                type="text"
-                name="landmark"
-                value={formData.landmark}
-                onChange={handleChange}
-                className="w-full p-3 md:p-4 text-sm md:text-base bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:border-emerald-500 focus:ring-0 transition-all outline-none hover:border-emerald-300"
-                placeholder="Enter nearby landmark (optional)"
-              />
-            </div>
-
-            {/* City and State */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-              <div className="form-group">
-                <label className="block text-xs md:text-sm font-semibold mb-1.5 md:mb-2 text-gray-700">
-                  City <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="w-full p-3 md:p-4 text-sm md:text-base bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:border-emerald-500 focus:ring-0 transition-all outline-none hover:border-emerald-300"
-                  placeholder="Enter city"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="block text-xs md:text-sm font-semibold mb-1.5 md:mb-2 text-gray-700">
-                  State <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  className="w-full p-3 md:p-4 text-sm md:text-base bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:border-emerald-500 focus:ring-0 transition-all outline-none hover:border-emerald-300"
-                  placeholder="Enter state"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Postal Code and Country */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-              <div className="form-group">
-                <label className="block text-xs md:text-sm font-semibold mb-1.5 md:mb-2 text-gray-700">
-                  Postal Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="postalCode"
-                  value={formData.postalCode}
-                  onChange={handleChange}
-                  className="w-full p-3 md:p-4 text-sm md:text-base bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:border-emerald-500 focus:ring-0 transition-all outline-none hover:border-emerald-300"
-                  placeholder="Enter postal code"
-                  required
-                  maxLength="6"
-                />
-              </div>
-              <div className="form-group">
-                <label className="block text-xs md:text-sm font-semibold mb-1.5 md:mb-2 text-gray-700">
-                  Country <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  className="w-full p-3 md:p-4 text-sm md:text-base bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:border-emerald-500 focus:ring-0 transition-all outline-none hover:border-emerald-300"
-                  placeholder="Enter country"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Default Address Toggle */}
-            <div className="bg-white p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-gray-200">
-              <label className="flex items-center justify-between cursor-pointer group">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center flex-shrink-0">
-                    <svg
-                      className="w-4 h-4 md:w-5 md:h-5 text-emerald-600"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
+              <div>
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-12 h-12 bg-[#D1FAE5] rounded-full border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[#065F46]">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-900 block text-sm md:text-base">
-                      Set as default address
-                    </span>
-                    <span className="text-xs md:text-sm text-gray-500">
-                      Use this address for future orders
-                    </span>
+                    <h3 className="text-xl font-bold font-serif leading-tight">{addr.street}</h3>
+                    <p className="text-gray-500 font-medium mt-1">{addr.city}, {addr.state}</p>
+                    <p className="text-sm text-gray-400 font-medium mt-1 uppercase tracking-wider">{addr.postalCode}</p>
                   </div>
                 </div>
-                <input
-                  type="checkbox"
-                  name="isDefault"
-                  checked={formData.isDefault}
-                  onChange={handleChange}
-                  className="sr-only peer"
-                />
-                <div className="relative w-11 h-6 md:w-14 md:h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] md:after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 md:after:h-6 md:after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-green-600 shadow-inner flex-shrink-0" />
-              </label>
-            </div>
-
-            {/* Submit Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 md:pt-4">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="group flex-1 h-12 md:h-14 flex gap-2 md:gap-3 justify-center items-center text-white bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:shadow-xl focus:ring-4 focus:outline-none focus:ring-emerald-300 font-bold rounded-lg md:rounded-xl text-sm md:text-base px-6 transition-all duration-300 hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>{editingId ? "Updating..." : "Adding..."}</span>
-                  </>
-                ) : (
-                  <>
-                    <span>{editingId ? "Update Address" : "Add Address"}</span>
-                    <svg
-                      className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform duration-300"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M14 5l7 7m0 0l-7 7m7-7H3"
-                      />
-                    </svg>
-                  </>
+                {addr.landmark && (
+                  <div className="bg-gray-50 border border-black/10 rounded-lg p-2 text-sm text-gray-600 mb-4 flex items-center gap-2">
+                     <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                     </svg>
+                    <span className="font-bold">Landmark:</span> {addr.landmark}
+                  </div>
                 )}
-              </button>
+              </div>
+
+              <div className="flex gap-3 mt-4 pt-4 border-t-2 border-dashed border-gray-200">
+                <button onClick={() => handleEdit(addr)} className={btnSecondary + " flex-1 bg-white hover:bg-gray-50"}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit
+                </button>
+                <button onClick={() => handleDelete(addr._id)} className={btnDanger + " flex-1"}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {/* "Add New" Card Placeholder */}
+          {!loading && !editingId && (
+            <button 
+              onClick={() => document.getElementById("address-form-section")?.scrollIntoView({ behavior: 'smooth' })}
+              className="group h-full min-h-[250px] rounded-3xl border-2 border-dashed border-black/30 flex flex-col items-center justify-center hover:bg-[#FFF] hover:border-black hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all duration-300"
+            >
+              <div className="w-16 h-16 bg-[#10B981] text-white rounded-full border-2 border-black flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <span className="font-bold text-lg font-serif">Add New Address</span>
+            </button>
+          )}
+        </div>
+
+
+        {/* --- FORM SECTION --- */}
+        <div id="address-form-section" className="relative">
+          {/* Decorative Shape */}
+          <div className="absolute -inset-1 bg-[#FCD34D] rounded-[2.5rem] rotate-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black z-0"></div>
+
+          <div className="relative bg-white border-2 border-black rounded-[2rem] p-6 md:p-10 z-10">
+            
+            <div className="flex justify-between items-center mb-8 pb-4 border-b-2 border-black">
+              <h2 className="text-2xl md:text-3xl font-bold font-serif flex items-center gap-3">
+                <div className="bg-[#10B981] text-white w-10 h-10 rounded-lg border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                   {/* Form Header Icon */}
+                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                   </svg>
+                </div>
+                {editingId ? "Update Details" : "New Location"}
+              </h2>
               {editingId && (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="h-12 md:h-14 px-6 md:px-8 rounded-lg md:rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 text-sm md:text-base"
-                >
-                  Cancel
+                <button onClick={cancelEdit} className="text-gray-500 hover:text-red-500 font-bold underline decoration-2 underline-offset-2">
+                  Cancel Edit
                 </button>
               )}
             </div>
-          </form>
+
+            <div className="grid lg:grid-cols-12 gap-10">
+              
+              {/* MAP COLUMN */}
+              <div className="lg:col-span-5 flex flex-col gap-4">
+                <label className={labelStyle}>1. Drop a Pin</label>
+                <div className="relative h-[350px] w-full rounded-2xl overflow-hidden border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <MapContainer
+                    center={[20.5937, 78.9629]}
+                    zoom={5}
+                    style={{ height: "100%", width: "100%" }}
+                    zoomControl={false}
+                    whenCreated={(map) => { mapRef.current = map; }}
+                  >
+                    <TileLayer
+                      url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                      attribution='&copy; CARTO'
+                    />
+                    <LocationMarker />
+                    {selectedPosition && <ChangeView center={selectedPosition} zoom={17} />}
+                  </MapContainer>
+
+                  {/* Locate Me Button */}
+                  <button
+                    type="button"
+                    onClick={handleGetCurrentLocation}
+                    className="absolute bottom-4 right-4 z-[400] bg-[#FCD34D] text-black p-3 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                  >
+                    {isLocating ? (
+                      <div className="animate-spin w-6 h-6 border-4 border-black border-t-transparent rounded-full"></div>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                <p className="text-sm font-medium text-gray-500 text-center italic">
+                  *Tap map to auto-fill address
+                </p>
+              </div>
+
+              {/* FORM COLUMN */}
+              <div className="lg:col-span-7">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  
+                  {/* Street */}
+                  <div>
+                    <label className={labelStyle}>Street Address</label>
+                    <input
+                      type="text"
+                      name="street"
+                      value={formData.street}
+                      onChange={handleChange}
+                      className={inputStyle}
+                      placeholder="e.g. 123 Puppy Lane, Building A"
+                      required
+                    />
+                  </div>
+
+                  {/* Landmark */}
+                  <div>
+                    <label className={labelStyle}>Landmark (Optional)</label>
+                    <input
+                      type="text"
+                      name="landmark"
+                      value={formData.landmark}
+                      onChange={handleChange}
+                      className={inputStyle}
+                      placeholder="e.g. Near the big park"
+                    />
+                  </div>
+
+                  {/* Grid Fields */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelStyle}>City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        className={inputStyle}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={labelStyle}>State</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleChange}
+                        className={inputStyle}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelStyle}>Zip Code</label>
+                      <input
+                        type="text"
+                        name="postalCode"
+                        value={formData.postalCode}
+                        onChange={handleChange}
+                        className={inputStyle}
+                        maxLength="6"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={labelStyle}>Country</label>
+                      <input
+                        type="text"
+                        name="country"
+                        value={formData.country}
+                        onChange={handleChange}
+                        className={inputStyle}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Checkbox */}
+                  <div className="pt-2">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          name="isDefault"
+                          checked={formData.isDefault}
+                          onChange={handleChange}
+                          className="peer sr-only"
+                        />
+                        <div className="w-6 h-6 border-2 border-black rounded bg-white peer-checked:bg-[#10B981] transition-colors"></div>
+                        {formData.isDefault && (
+                          <svg className="absolute top-0.5 left-0.5 w-5 h-5 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="font-bold text-gray-700 group-hover:text-[#10B981] transition-colors">
+                        Set as my default address
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-4">
+                    <button type="submit" disabled={isSubmitting} className={btnPrimary}>
+                      {isSubmitting ? (
+                        "Saving..."
+                      ) : (
+                        <>
+                          {editingId ? "Update Address" : "Save Address"} 
+                          <svg className="w-5 h-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                             <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   );
