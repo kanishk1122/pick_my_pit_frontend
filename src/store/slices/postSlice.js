@@ -22,6 +22,13 @@ const initialState = {
     maxPrice: "100000",
     sortBy: "newest",
     page: 1,
+    // Location Filters
+    nearMe: false,
+    locationId: "",
+    latitude: null,
+    longitude: null,
+    maxDistance: "50",
+    city: "",
   },
   viewMode: "grid",
 };
@@ -218,6 +225,12 @@ const postSlice = createSlice({
         maxPrice: "100000",
         sortBy: "newest",
         page: 1,
+        nearMe: false,
+        locationId: "",
+        latitude: null,
+        longitude: null,
+        maxDistance: "50",
+        city: "",
       };
     },
     setViewMode: (state, action) => {

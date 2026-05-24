@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { Routes, Route, useLocation } from "react-router-dom";
+import apiService from "./apiService";
 import Deafultpage from "../components/Deafultpage";
 import Navbar from "../components/Navbar";
 import Home from "../components/Home.jsx";
@@ -22,6 +22,8 @@ import Faq from "../components/Faq/Index.jsx";
 import PrivacyPolicy from "../components/PrivacyPolicy/Index.jsx";
 import HelpCenter from "../components/HelpCenter/Index.jsx";
 import Misc from "../components/misc/index.jsx"
+import Messenger from "../components/Chat/Messenger.jsx";
+import Footer from "../components/Footer";
 import { USER } from "../Consts/apikeys.js";
 
 function App() {
@@ -30,7 +32,7 @@ function App() {
   useEffect(() => {
     // Fetch user data from backend
     async function fetchUser() {
-      const response = await axios.get(USER.GetUser);
+      const response = await apiService.get(USER.GetUser);
       setUser(response.data);
     }
     fetchUser();
@@ -38,7 +40,7 @@ function App() {
 
   const handlePetInfoAccess = async (petId) => {
     if (user.coins >= 10) {
-      await axios.post("/api/coins/deduct-coins", {
+      await apiService.post("/api/coins/deduct-coins", {
         userId: user._id,
         amount: 10,
       });
@@ -70,6 +72,7 @@ function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               <Route path="/help-center" element={<HelpCenter />} />
+              <Route path="/messenger" element={<Messenger />} />
               <Route
                 path="/pet/:slug"
                 element={<PetViewer onAccess={handlePetInfoAccess} />}
@@ -92,6 +95,9 @@ function App() {
 
 // Main layout with Navbar
 const MainLayout = ({ children }) => {
+  const { pathname } = useLocation();
+  const isMessenger = pathname === "/messenger";
+
   return (
     // 1. Global Theme Background (Cream) & Text Color
     // overflow-x-hidden prevents horizontal scrollbars from animations
@@ -107,7 +113,9 @@ const MainLayout = ({ children }) => {
 
       {/* 3. Main Content Area */}
       {/* Added enough top padding (pt-32) so the first section isn't hidden behind the floating navbar */}
-      <main className="w-full pt-32 md:pt-36 pb-12 mx-auto">{children}</main>
+      <main className={`w-full pt-32 md:pt-36 ${isMessenger ? 'pb-0' : 'pb-12'} mx-auto`}>{children}</main>
+      
+      {!isMessenger && <Footer />}
     </div>
   );
 };

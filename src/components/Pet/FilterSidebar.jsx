@@ -123,6 +123,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
     latitude: null, // Stores raw latitude
     longitude: null, // Stores raw longitude
     maxDistance: "50",
+    city: "",
     ...initialFilters,
   });
 
@@ -214,6 +215,13 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
           maximumAge: 0,
         }
       );
+    } else if (value === "manual") {
+      setFilters((prev) => ({
+        ...prev,
+        locationId: "",
+        latitude: null,
+        longitude: null,
+      }));
     } else {
       // User selected a Saved Address
       setFilters((prev) => ({
@@ -359,7 +367,25 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                       🏠 {addr.city} {addr.isDefault ? "(Default)" : ""}
                     </option>
                   ))}
+                  
+                  <option disabled>──────────</option>
+                  <option value="manual">⌨ Enter City Manually</option>
                 </select>
+
+                {/* Manual City Input */}
+                {(!filters.locationId && !filters.latitude && filters.nearMe) || (filters.nearMe && !filters.locationId && !filters.latitude) || (filters.nearMe && filters.locationId === "" && filters.latitude === null) ? (
+                   <div className="mt-3 animate-fade-in">
+                     <label className="block text-[10px] font-semibold text-stone-400 mb-1 uppercase">City Name</label>
+                     <input 
+                       type="text"
+                       name="city"
+                       value={filters.city}
+                       onChange={handleInputChange}
+                       placeholder="e.g. Jaipur"
+                       className="w-full px-3 py-2 text-sm bg-white border border-stone-200 rounded-lg text-stone-700 focus:border-emerald-500 outline-none transition-all"
+                     />
+                   </div>
+                ) : null}
 
                 {/* Status Messages */}
                 {isLocating && (

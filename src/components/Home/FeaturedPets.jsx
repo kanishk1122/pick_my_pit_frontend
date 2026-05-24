@@ -22,7 +22,29 @@ const FeaturedPets = () => {
   const { posts, loading } = useAppSelector((state) => state.posts);
 
   useEffect(() => {
-    dispatch(fetchPosts({ limit: 3, page: 1, sortBy: 'newest' }));
+    // Try to get location for local arrivals
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          dispatch(fetchPosts({ 
+            limit: 3, 
+            page: 1, 
+            sortBy: 'newest',
+            nearMe: 'true',
+            latitude,
+            longitude,
+            maxDistance: 100 // Slightly wider for home page
+          }));
+        },
+        () => {
+          // Fallback if location denied/error
+          dispatch(fetchPosts({ limit: 3, page: 1, sortBy: 'newest' }));
+        }
+      );
+    } else {
+      dispatch(fetchPosts({ limit: 3, page: 1, sortBy: 'newest' }));
+    }
   }, [dispatch]);
 
   const featuredPosts = posts.slice(0, 3);

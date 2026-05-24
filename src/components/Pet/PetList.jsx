@@ -9,6 +9,8 @@ import {
 import FilterSidebar from "./FilterSidebar";
 import FilteredPetList from "./FilteredPetList";
 import PostSlicer from "./PostSlicer";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 // --- Icons (Unified Stone Color) ---
 const FilterIcon = () => (
@@ -48,6 +50,7 @@ const PetList = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const hasInitialized = useRef(false);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Redux state
   const posts = useAppSelector((state) => state.posts.posts);
@@ -128,6 +131,11 @@ const PetList = () => {
         maxPrice: params.maxPrice || "100000",
         sortBy: params.sort || "newest",
         page: parseInt(params.page) || 1,
+        // Location params
+        nearMe: params.nearMe === "true",
+        latitude: params.latitude ? parseFloat(params.latitude) : null,
+        longitude: params.longitude ? parseFloat(params.longitude) : null,
+        maxDistance: params.maxDistance || "50",
       };
       dispatch(setFilters(urlFilters));
       hasInitialized.current = true;
@@ -192,15 +200,57 @@ const PetList = () => {
             {/* Mobile Filter Button */}
             <div className="lg:hidden mb-6">
               <button
-                onClick={() => {
-                  alert("Mobile filter coming soon!");
-                }}
+                onClick={() => setIsMobileFilterOpen(true)}
                 className="w-full bg-white border border-stone-200 rounded-2xl p-4 flex items-center justify-center gap-2 text-stone-600 font-bold hover:border-emerald-400 hover:text-emerald-600 transition-all shadow-sm"
               >
                 <FilterIcon />
                 Filters & Sort
               </button>
             </div>
+
+            {/* Mobile Filter Drawer */}
+            <AnimatePresence>
+              {isMobileFilterOpen && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsMobileFilterOpen(false)}
+                    className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-[100]"
+                  />
+                  <motion.div
+                    initial={{ x: "100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="fixed right-0 top-0 h-full w-[90%] max-w-sm bg-white z-[101] shadow-2xl overflow-y-auto"
+                  >
+                    <div className="p-6">
+                      <div className="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
+                        <h2 className="text-xl font-bold text-stone-800">Filters</h2>
+                        <button
+                          onClick={() => setIsMobileFilterOpen(false)}
+                          className="p-2 rounded-full hover:bg-stone-100 text-stone-400"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <FilterSidebar
+                        initialFilters={filters}
+                        onFilterChange={(f) => {
+                          handleFilterChange(f);
+                          setIsMobileFilterOpen(false);
+                        }}
+                        loading={loading}
+                      />
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
 
             {/* Post Slicer (Control Bar) Container */}
             <div className="bg-white border border-stone-200 rounded-[1.5rem] mb-6 shadow-sm overflow-hidden p-1">

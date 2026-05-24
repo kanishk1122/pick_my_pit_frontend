@@ -10,7 +10,6 @@ const App = () => {
       <ChatProvider>
         <div className="min-h-screen flex flex-col bg-[#FDFCF8]">
           <AppRoutes />
-          <Footer />
         </div>
       </ChatProvider>
     </GoogleOAuthProvider>
