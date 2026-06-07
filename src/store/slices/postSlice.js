@@ -111,7 +111,7 @@ export const createPost = createAsyncThunk(
         throw new Error(response.data.message || "Failed to create post");
       }
 
-      return response.data.post;
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -132,7 +132,7 @@ export const updatePost = createAsyncThunk(
         throw new Error(response.data.message || "Failed to update post");
       }
 
-      return response.data.post;
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -174,7 +174,7 @@ export const fetchPostById = createAsyncThunk(
         throw new Error(response.data.message || "Failed to fetch post");
       }
 
-      return response.data.post;
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || error.message || "Failed to fetch post"
@@ -303,8 +303,10 @@ const postSlice = createSlice({
       })
       .addCase(createPost.fulfilled, (state, action) => {
         state.loading = false;
-        state.posts.unshift(action.payload); // Add new post to the beginning
-        state.pageInfo.totalPosts += 1;
+        if (action.payload) {
+          state.posts.unshift(action.payload); // Add new post to the beginning
+          state.pageInfo.totalPosts += 1;
+        }
         state.error = null;
       })
       .addCase(createPost.rejected, (state, action) => {
@@ -319,11 +321,13 @@ const postSlice = createSlice({
       })
       .addCase(updatePost.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.posts.findIndex(
-          (post) => post._id === action.payload._id
-        );
-        if (index !== -1) {
-          state.posts[index] = action.payload;
+        if (action.payload) {
+          const index = state.posts.findIndex(
+            (post) => post && post._id === action.payload._id
+          );
+          if (index !== -1) {
+            state.posts[index] = action.payload;
+          }
         }
         state.error = null;
       })
@@ -355,12 +359,14 @@ const postSlice = createSlice({
       })
       .addCase(fetchPostById.fulfilled, (state, action) => {
         state.loading = false;
-        // Update the post in the list if it exists
-        const index = state.posts.findIndex(
-          (post) => post._id === action.payload._id
-        );
-        if (index !== -1) {
-          state.posts[index] = action.payload;
+        if (action.payload) {
+          // Update the post in the list if it exists
+          const index = state.posts.findIndex(
+            (post) => post && post._id === action.payload._id
+          );
+          if (index !== -1) {
+            state.posts[index] = action.payload;
+          }
         }
         state.error = null;
       })

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAddresses } from "../../hooks/useAddresses";
 import { useUser } from "../../utils/Usercontext";
 import { useSpecies } from "../../hooks/useSpecies";
+import CustomSelect from "./CustomSelect";
 
 import "../../styles/rangeSlider.css";
 
@@ -70,9 +71,9 @@ const MoneyIcon = () => (
   </svg>
 );
 
-const MapPinIcon = () => (
+const MapPinIcon = ({ className = "w-4 h-4 text-stone-400" }) => (
   <svg
-    className="w-4 h-4 text-stone-400"
+    className={className}
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -88,6 +89,38 @@ const MapPinIcon = () => (
       strokeLinejoin="round"
       strokeWidth="2"
       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+    />
+  </svg>
+);
+
+const HomeIcon = ({ className = "w-4 h-4 text-stone-400" }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+    />
+  </svg>
+);
+
+const KeyboardIcon = ({ className = "w-4 h-4 text-stone-400" }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M3 10h18M3 14h18m-9-4v8m-3-8v8m6-8v8M3 6h18a2 2 0 012 2v8a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2z"
     />
   </svg>
 );
@@ -137,6 +170,8 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
   } = useBreeds(filters.species);
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
 
+  const distancePct = ((parseFloat(filters.maxDistance) - 5) / (500 - 5)) * 100;
+
   // Sync initial filters
   useEffect(() => {
     setFilters((prev) => ({
@@ -162,8 +197,8 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
   }, [filters.species, getBreeds]);
 
   // --- 📍 GEOLOCATION HANDLER ---
-  const handleLocationSelect = (e) => {
-    const value = e.target.value;
+  const handleLocationSelect = (valueOrEvent) => {
+    const value = valueOrEvent && valueOrEvent.target ? valueOrEvent.target.value : valueOrEvent;
     setLocationError("");
 
     if (value === "current_location") {
@@ -301,13 +336,72 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
     return "";
   };
 
+  const locationOptions = [
+    {
+      value: "current_location",
+      label: (
+        <span className="flex items-center gap-2">
+          <MapPinIcon className="w-4 h-4 text-emerald-600" />
+          <span>{isLocating ? "Loading location..." : "Use Current Location"}</span>
+        </span>
+      ),
+    },
+    ...userAddresses.map((addr) => ({
+      value: addr._id,
+      label: (
+        <span className="flex items-center gap-2">
+          <HomeIcon className="w-4 h-4 text-stone-500" />
+          <span>
+            {addr.city} {addr.isDefault ? "(Default)" : ""}
+          </span>
+        </span>
+      ),
+    })),
+    {
+      value: "manual",
+      label: (
+        <span className="flex items-center gap-2">
+          <KeyboardIcon className="w-4 h-4 text-stone-500" />
+          <span>Enter City Manually</span>
+        </span>
+      ),
+    },
+  ];
+
+  const speciesOptions = [
+    { value: "", label: "All Species" },
+    ...(allSpecies?.data || []).map((s) => ({
+      value: s.name.toLowerCase(),
+      label: s.name,
+    })),
+  ];
+
+  const breedOptions = [
+    { value: "", label: "All Breeds" },
+    ...(breeds?.data || []).map((breed) => ({
+      value: getBreedValue(breed),
+      label: getBreedDisplayName(breed),
+    })),
+  ];
+
+  const categoryOptions = [
+    { value: "", label: "All Categories" },
+    { value: "free", label: "Adoption (Free)" },
+    { value: "paid", label: "Sale (Paid)" },
+  ];
+
+  const getSelectedLocationValue = () => {
+    if (filters.latitude) return "current_location";
+    if (filters.locationId) return filters.locationId;
+    return "manual";
+  };
 
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="flex items-center mb-6 pb-4 border-b border-stone-100">
+      <div className="flex items-center mb-6 pb-4 border-b-2 border-black">
         <FilterIcon />
-        <h2 className="text-xl font-bold text-stone-800 tracking-tight">
+        <h2 className="text-xl font-bold text-stone-950 tracking-tight font-serif">
           Filter Pets
         </h2>
       </div>
@@ -333,56 +427,30 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
 
           {/* Location Options */}
           {filters.nearMe && (
-            <div className="animate-fade-in-down p-4 bg-stone-50 rounded-2xl border border-stone-100 space-y-4">
+            <div className="animate-fade-in-down p-4 bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-stone-500 mb-2 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-stone-600 mb-2 uppercase tracking-wider">
                   Search Around
                 </label>
-                <select
-                  value={
-                    filters.latitude ? "current_location" : filters.locationId
-                  }
+                <CustomSelect
+                  options={locationOptions}
+                  value={getSelectedLocationValue()}
                   onChange={handleLocationSelect}
                   disabled={isLocating}
-                  className={`w-full px-3 py-2 text-sm bg-white border rounded-lg text-stone-700 outline-none transition-all
-                                ${
-                                  locationError
-                                    ? "border-red-300 focus:border-red-500"
-                                    : "border-stone-200 focus:border-emerald-500"
-                                }
-                                disabled:bg-stone-50 disabled:cursor-wait`}
-                >
-                  <option value="current_location">
-                    {isLocating
-                      ? "Waiting for permission..."
-                      : "📍 Use Current Location"}
-                  </option>
-
-                  {userAddresses.length > 0 && (
-                    <option disabled>──────────</option>
-                  )}
-
-                  {userAddresses.map((addr) => (
-                    <option key={addr._id} value={addr._id}>
-                      🏠 {addr.city} {addr.isDefault ? "(Default)" : ""}
-                    </option>
-                  ))}
-                  
-                  <option disabled>──────────</option>
-                  <option value="manual">⌨ Enter City Manually</option>
-                </select>
+                  placeholder="Select Location"
+                />
 
                 {/* Manual City Input */}
                 {(!filters.locationId && !filters.latitude && filters.nearMe) || (filters.nearMe && !filters.locationId && !filters.latitude) || (filters.nearMe && filters.locationId === "" && filters.latitude === null) ? (
                    <div className="mt-3 animate-fade-in">
-                     <label className="block text-[10px] font-semibold text-stone-400 mb-1 uppercase">City Name</label>
+                     <label className="block text-[10px] font-bold text-stone-500 mb-1 uppercase">City Name</label>
                      <input 
                        type="text"
                        name="city"
                        value={filters.city}
                        onChange={handleInputChange}
                        placeholder="e.g. Jaipur"
-                       className="w-full px-3 py-2 text-sm bg-white border border-stone-200 rounded-lg text-stone-700 focus:border-emerald-500 outline-none transition-all"
+                       className="w-full px-3 py-2 text-sm bg-white border-2 border-black rounded-lg text-stone-900 focus:border-emerald-500 outline-none transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                      />
                    </div>
                 ) : null}
@@ -398,7 +466,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                     {locationError}
                   </p>
                 )}
-                {filters.latitude && !isLocating && (
+                {typeof filters.latitude === "number" && !isNaN(filters.latitude) && !isLocating && (
                   <p className="text-[10px] text-emerald-600 mt-1 font-medium ml-1">
                     ✓ Location set: {filters.latitude.toFixed(4)},{" "}
                     {filters.longitude.toFixed(4)}
@@ -407,7 +475,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
               </div>
 
               {/* Distance Slider */}
-              <div>
+              <div className="pt-8">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                     Max Distance
@@ -416,17 +484,46 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                     {filters.maxDistance} km
                   </span>
                 </div>
-                <input
-                  type="range"
-                  name="maxDistance"
-                  min="5"
-                  max="500"
-                  step="5"
-                  value={filters.maxDistance}
-                  onChange={handleInputChange}
-                  className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-                <div className="flex justify-between text-[10px] text-stone-400 mt-1">
+
+                <div className="gsap-slider-container">
+                  {/* Tooltip Pin showing dynamic value */}
+                  <div 
+                    className="gsap-slider-tooltip"
+                    style={{ left: `${distancePct}%` }}
+                  >
+                    {filters.maxDistance}
+                    <div className="gsap-slider-tooltip-arrow" />
+                  </div>
+
+                  {/* Custom Track */}
+                  <div className="gsap-slider-track" />
+
+                  {/* Custom Progress */}
+                  <div 
+                    className="gsap-slider-progress" 
+                    style={{ width: `${distancePct}%` }}
+                  />
+
+                  {/* Custom Thumb */}
+                  <div 
+                    className="gsap-slider-thumb" 
+                    style={{ left: `${distancePct}%` }}
+                  />
+
+                  {/* Invisible Range Input */}
+                  <input
+                    type="range"
+                    name="maxDistance"
+                    min="5"
+                    max="500"
+                    step="5"
+                    value={filters.maxDistance}
+                    onChange={handleInputChange}
+                    className="gsap-slider-input"
+                  />
+                </div>
+
+                <div className="flex justify-between text-[10px] text-stone-400 mt-2">
                   <span>5km</span>
                   <span>500km</span>
                 </div>
@@ -439,92 +536,67 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
 
         {/* Species Selection */}
         <div className="group">
-          <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-600">
+          <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-700">
             <PawIcon /> Species
           </label>
           <div className="relative">
-            <select
-              name="species"
+            <CustomSelect
+              options={speciesOptions}
               value={filters.species}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none appearance-none cursor-pointer hover:border-emerald-300"
-            >
-              <option value="">All Species</option>
-              {isLoadingSpecies ? (
-                <option disabled>Loading species...</option>
-              ) : ( allSpecies && 
-                allSpecies.data?.map((s) => (
-                  <option key={s._id} value={s.name.toLowerCase()}>
-                    {s.name}
-                  </option>
-                ))
-              )}
-            </select>
+              onChange={(val) => handleInputChange({ target: { name: "species", value: val } })}
+              disabled={isLoadingSpecies}
+              placeholder={isLoadingSpecies ? "Loading species..." : "All Species"}
+            />
           </div>
         </div>
 
         {/* Breed Selection */}
         {filters.species && (
           <div className="animate-fade-in-down">
-            <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-600">
+            <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-700">
               <TagIcon /> Breed
             </label>
-            <select
-              name="breed"
+            <CustomSelect
+              options={breedOptions}
               value={filters.breed}
-              onChange={handleInputChange}
+              onChange={(val) => handleInputChange({ target: { name: "breed", value: val } })}
               disabled={isLoadingBreeds}
-              className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none appearance-none cursor-pointer hover:border-emerald-300 disabled:bg-stone-100 disabled:text-stone-400"
-            >
-              <option value="">All Breeds</option>
-              {isLoadingBreeds ? (
-                <option disabled>Loading breeds...</option>
-              ) : (
-                breeds.data.map((breed, index) => (
-                  <option key={index} value={getBreedValue(breed)}>
-                    {getBreedDisplayName(breed)}
-                  </option>
-                ))
-              )}
-            </select>
+              placeholder={isLoadingBreeds ? "Loading breeds..." : "All Breeds"}
+            />
           </div>
         )}
 
         {/* Type Selection */}
         <div>
-          <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-600">
+          <label className="flex items-center gap-2 text-sm font-bold mb-2 text-stone-700">
             <TagIcon /> Category
           </label>
-          <select
-            name="type"
+          <CustomSelect
+            options={categoryOptions}
             value={filters.type}
-            onChange={handleInputChange}
-            className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none appearance-none cursor-pointer hover:border-emerald-300"
-          >
-            <option value="">All Categories</option>
-            <option value="free">Adoption (Free)</option>
-            <option value="paid">Sale (Paid)</option>
-          </select>
+            onChange={(val) => handleInputChange({ target: { name: "type", value: val } })}
+            placeholder="All Categories"
+          />
         </div>
 
         {/* Price Range */}
         {filters.type !== "free" && (
-          <div className="animate-fade-in-down p-4 bg-stone-50 rounded-2xl border border-stone-100">
-            <label className="flex items-center gap-2 text-sm font-bold mb-4 text-stone-600">
+          <div className="animate-fade-in-down p-4 bg-white border-2 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <label className="flex items-center gap-2 text-sm font-bold mb-4 text-stone-700">
               <MoneyIcon /> Price Range
             </label>
 
             <div className="space-y-5">
               <div className="flex justify-between text-xs font-bold font-mono">
-                <span className="text-stone-500 bg-white px-2 py-1 rounded border border-stone-200">
+                <span className="text-stone-900 bg-amber-100 px-3 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {formatPrice(filters.minPrice)}
                 </span>
-                <span className="text-stone-500 bg-white px-2 py-1 rounded border border-stone-200">
+                <span className="text-stone-900 bg-amber-100 px-3 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {formatPrice(filters.maxPrice)}
                 </span>
               </div>
 
-              <div className="relative h-2 bg-stone-200 rounded-full">
+              <div className="relative h-2 bg-stone-200 rounded-full border border-black">
                 <div
                   className="absolute h-full bg-emerald-500 rounded-full opacity-80"
                   style={{
@@ -543,7 +615,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                   step="1000"
                   value={filters.minPrice}
                   onChange={handleRangeChange}
-                  className="absolute w-full -top-3 h-2 appearance-none bg-transparent pointer-events-auto cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
+                  className="absolute w-full -top-3 h-2 appearance-none bg-transparent pointer-events-auto cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
                 />
                 <input
                   type="range"
@@ -553,13 +625,13 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                   step="1000"
                   value={filters.maxPrice}
                   onChange={handleRangeChange}
-                  className="absolute w-full -top-3 h-2 appearance-none bg-transparent pointer-events-auto cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-emerald-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
+                  className="absolute w-full -top-3 h-2 appearance-none bg-transparent pointer-events-auto cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110"
                 />
               </div>
 
               <div className="flex justify-between gap-2 pt-2">
                 <div className="relative w-full">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-bold">
                     ₹
                   </span>
                   <input
@@ -567,13 +639,13 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                     name="minPrice"
                     value={filters.minPrice}
                     onChange={handleRangeChange}
-                    className="w-full pl-6 pr-2 py-2 text-sm border border-stone-200 rounded-lg focus:border-emerald-500 focus:outline-none"
+                    className="w-full pl-6 pr-2 py-2 text-sm border-2 border-black rounded-lg focus:border-emerald-500 focus:outline-none bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                     min="0"
                     max={filters.maxPrice}
                   />
                 </div>
                 <div className="relative w-full">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-bold">
                     ₹
                   </span>
                   <input
@@ -581,7 +653,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
                     name="maxPrice"
                     value={filters.maxPrice}
                     onChange={handleRangeChange}
-                    className="w-full pl-6 pr-2 py-2 text-sm border border-stone-200 rounded-lg focus:border-emerald-500 focus:outline-none"
+                    className="w-full pl-6 pr-2 py-2 text-sm border-2 border-black rounded-lg focus:border-emerald-500 focus:outline-none bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                     min={filters.minPrice}
                     max="100000"
                   />
@@ -594,7 +666,7 @@ const FilterSidebar = ({ onFilterChange, initialFilters }) => {
         {/* Apply Filters Button */}
         <button
           onClick={() => onFilterChange(filters)}
-          className="w-full mt-6 bg-emerald-600 brand-button"
+          className="w-full mt-6 brand-button-accent"
         >
           Apply Filters
         </button>

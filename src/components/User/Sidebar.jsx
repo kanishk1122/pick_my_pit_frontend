@@ -124,10 +124,10 @@ const Sidebar = ({ isMobile }) => {
                 key={item.title}
                 onClick={() => navigate(`${item.link}`)}
                 className={`
-                  w-full flex items-center gap-4 px-5 py-4 rounded-3xl font-black transition-all duration-300 group
+                  w-full flex items-center gap-4 px-5 py-3 rounded-2xl font-black transition-all duration-300 group border-2
                   ${active
-                    ? "bg-emerald-500 text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] -translate-y-1"
-                    : "text-stone-500 hover:bg-emerald-50 hover:text-emerald-600 hover:translate-x-2"
+                    ? "bg-emerald-500 text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-y-1"
+                    : "text-stone-500 border-transparent hover:border-black hover:bg-emerald-50/50 hover:text-emerald-600 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1"
                   }
                 `}
               >
@@ -151,11 +151,11 @@ const Sidebar = ({ isMobile }) => {
       </nav>
 
       {/* Support Card */}
-      <div className="bg-stone-900 rounded-[2rem] p-6 text-white border-2 border-black relative overflow-hidden group">
+      <div className="bg-stone-900 rounded-[2rem] p-6 text-white border-2 border-black relative overflow-hidden group shadow-[8px_8px_0px_0px_rgba(252,211,77,1)]">
         <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl group-hover:scale-150 transition-transform duration-500" />
         <h4 className="font-serif font-black text-lg mb-2 relative z-10">Need Help?</h4>
         <p className="text-xs text-white/60 mb-4 font-medium relative z-10">Our pet support team is here 24/7 for your furry friends.</p>
-        <button className="w-full py-3 bg-white text-black rounded-xl font-bold text-sm shadow-[4px_4px_0px_0px_rgba(255,255,255,0.4)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all">
+        <button className="w-full py-3 bg-white text-black rounded-xl font-bold text-sm border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all cursor-pointer">
           Contact Support
         </button>
       </div>

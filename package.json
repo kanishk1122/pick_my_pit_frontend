@@ -38,6 +38,8 @@
     "lexical": "^0.39.0",
     "lodash.debounce": "^4.0.8",
     "lottie-react": "^2.4.0",
+    "lucide-react": "^1.17.0",
+    "maplibre-gl": "^5.24.0",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

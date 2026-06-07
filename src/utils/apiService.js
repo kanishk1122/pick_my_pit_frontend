@@ -74,7 +74,11 @@ apiClient.interceptors.response.use(
       // Optional: clear invalid session
       // Cookies.remove('Userdata');
       localStorage.removeItem("user");
-      window.location.href = "/auth";
+      
+      // Only redirect if not already on the auth page to avoid loop
+      if (!window.location.pathname.startsWith("/auth")) {
+        window.location.href = "/auth";
+      }
     }
 
     return Promise.reject(error);

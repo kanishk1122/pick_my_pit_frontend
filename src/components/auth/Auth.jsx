@@ -9,8 +9,12 @@ import image from "../../assets/images/pikaso_texttoimage_A-handdrawn-vibrant-ou
 
 // --- Icons ---
 const PawIcon = () => (
-  <svg className="w-6 h-6 text-stone-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 2.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 5.5c-2.5 0-4.5 2-4.5 4.5v2.5h9v-2.5c0-2.5-2-4.5-4.5-4.5z" />
+  <svg className="w-6 h-6 text-stone-900" fill="currentColor" viewBox="0 0 24 24">
+    <circle cx="11" cy="4" r="2" />
+    <circle cx="18" cy="8" r="2" />
+    <circle cx="20" cy="16" r="2" />
+    <circle cx="4" cy="14" r="2" />
+    <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z" />
   </svg>
 );
 

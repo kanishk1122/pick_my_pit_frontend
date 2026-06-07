@@ -13,6 +13,16 @@ body {
   min-height: 100vh;
 }
 
+/* Remove default spinner on number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 @keyframes spin {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
@@ -88,6 +98,65 @@ body {
   }
 
   .brand-button-accent {
-    @apply brand-button bg-[#34D399] text-white; /* Emerald */
+    @apply brand-button bg-[#34D399] text-stone-950; /* Emerald background, black text */
+  }
+
+  .brand-button-accent:hover {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-300;
+  }
+
+  .brand-button-accent:active {
+    @apply bg-[#249c6d] text-white;
+  }
+
+  /* Quick Filter Slicer Chips */
+  .slicer-chip {
+    @apply flex items-center px-3 py-1.5 text-xs font-bold rounded-full border-2 transition-all duration-200;
+    @apply bg-white text-stone-700 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)];
+  }
+
+  .slicer-chip:hover {
+    @apply bg-stone-50 translate-y-[1px] shadow-none;
+  }
+
+  .slicer-chip-active {
+    @apply flex items-center px-3 py-1.5 text-xs font-bold rounded-full border-2 transition-all duration-200;
+    @apply bg-emerald-50 text-emerald-700 border-emerald-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)];
+  }
+
+  /* GSAP-like Neubrutalist Slider styling */
+  .gsap-slider-container {
+    @apply relative w-full h-8 flex items-center select-none mt-6;
+  }
+
+  .gsap-slider-input {
+    @apply absolute w-full h-full opacity-0 cursor-pointer z-30;
+  }
+
+  /* Custom track */
+  .gsap-slider-track {
+    @apply absolute left-0 right-0 h-3 bg-stone-100 rounded-full border-2 border-black z-10;
+  }
+
+  .gsap-slider-progress {
+    @apply absolute left-0 h-3 bg-emerald-400 rounded-full border-y-2 border-l-2 border-black z-20;
+  }
+
+  /* Custom thumb */
+  .gsap-slider-thumb {
+    @apply absolute w-6 h-6 bg-white border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] z-20 pointer-events-none -translate-x-1/2 -translate-y-1/2 top-1/2 transition-transform duration-75;
+  }
+
+  .gsap-slider-container:hover .gsap-slider-thumb {
+    @apply scale-110;
+  }
+
+  /* Custom tooltip pin */
+  .gsap-slider-tooltip {
+    @apply absolute -top-12 w-9 h-9 bg-amber-100 text-stone-900 border-2 border-black rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -translate-x-1/2 z-20 pointer-events-none flex items-center justify-center text-xs font-black transition-all duration-75;
+  }
+
+  .gsap-slider-tooltip-arrow {
+    @apply absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-amber-100 border-r-2 border-b-2 border-black rotate-45;
   }
 }

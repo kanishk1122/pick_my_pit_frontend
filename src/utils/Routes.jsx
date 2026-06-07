@@ -25,20 +25,16 @@ import Misc from "../components/misc/index.jsx"
 import Messenger from "../components/Chat/Messenger.jsx";
 import Footer from "../components/Footer";
 import { USER } from "../Consts/apikeys.js";
+import { useUser } from "./Usercontext";
 
 function App() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // Fetch user data from backend
-    async function fetchUser() {
-      const response = await apiService.get(USER.GetUser);
-      setUser(response.data);
-    }
-    fetchUser();
-  }, []);
+  const { user } = useUser();
 
   const handlePetInfoAccess = async (petId) => {
+    if (!user) {
+      window.location.href = "/auth";
+      return;
+    }
     if (user.coins >= 10) {
       await apiService.post("/api/coins/deduct-coins", {
         userId: user._id,

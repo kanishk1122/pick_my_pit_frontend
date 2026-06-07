@@ -1,13 +1,115 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import nd1 from '../../assets/images/normat_dog.png';
-import nd2 from '../../assets/images/normal_dog_2.png';
+
+// --- Cute Dog SVGs (Vector Illustrations) ---
+const AdoptDogSVG = () => (
+  <svg 
+    viewBox="0 0 200 200" 
+    className="relative w-64 h-64 rounded-full border-8 border-white shadow-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500"
+  >
+    {/* Background Circle */}
+    <circle cx="100" cy="100" r="90" fill="#E0F2FE" stroke="black" strokeWidth="4" />
+    
+    {/* Dog Body */}
+    <path d="M60 180 C60 140, 140 140, 140 180 Z" fill="#E2E8F0" stroke="black" strokeWidth="4" />
+    {/* Collar */}
+    <path d="M70 155 C70 150, 130 150, 130 155 L125 163 C125 163, 75 163, 75 163 Z" fill="#EF4444" stroke="black" strokeWidth="4" />
+    <circle cx="100" cy="162" r="8" fill="#FCD34D" stroke="black" strokeWidth="3" />
+    
+    {/* Left Ear */}
+    <path d="M40 70 C25 80, 20 120, 35 130 C45 135, 60 110, 55 90 Z" fill="#92400E" stroke="black" strokeWidth="4" />
+    {/* Right Ear */}
+    <path d="M160 70 C175 80, 180 120, 165 130 C155 135, 140 110, 145 90 Z" fill="#92400E" stroke="black" strokeWidth="4" />
+    
+    {/* Face/Head */}
+    <circle cx="100" cy="95" r="50" fill="#FDBA74" stroke="black" strokeWidth="4" />
+    
+    {/* Face Spot */}
+    <path d="M100 50 C125 50, 135 75, 120 100 C110 110, 90 100, 100 50" fill="#F97316" />
+    
+    {/* Eyes */}
+    <circle cx="80" cy="90" r="8" fill="black" />
+    <circle cx="78" cy="88" r="3" fill="white" />
+    <circle cx="120" cy="90" r="8" fill="black" />
+    <circle cx="118" cy="88" r="3" fill="white" />
+    
+    {/* Snout */}
+    <ellipse cx="100" cy="115" rx="18" ry="12" fill="white" stroke="black" strokeWidth="3" />
+    
+    {/* Nose */}
+    <path d="M92 110 H108 L100 118 Z" fill="black" stroke="black" strokeWidth="2" strokeLinejoin="round" />
+    
+    {/* Mouth */}
+    <path d="M95 120 Q100 125 105 120" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" />
+    
+    {/* Tongue */}
+    <path d="M97 122 Q100 135 103 122 Z" fill="#F43F5E" stroke="black" strokeWidth="2" />
+    
+    {/* Cheeks */}
+    <circle cx="62" cy="105" r="5" fill="#FCA5A5" opacity="0.6" />
+    <circle cx="138" cy="105" r="5" fill="#FCA5A5" opacity="0.6" />
+  </svg>
+);
+
+const RehomeDogSVG = () => (
+  <svg 
+    viewBox="0 0 200 200" 
+    className="relative w-64 h-64 rounded-full border-8 border-white shadow-2xl -rotate-3 group-hover:-rotate-6 transition-transform duration-500"
+  >
+    {/* Background Circle */}
+    <circle cx="100" cy="100" r="90" fill="#FEF3C7" stroke="black" strokeWidth="4" />
+    
+    {/* Dog Body */}
+    <path d="M60 180 C60 135, 140 135, 140 180 Z" fill="#FFFFFF" stroke="black" strokeWidth="4" />
+    {/* Spots on Body */}
+    <circle cx="75" cy="165" r="10" fill="#4B5563" />
+    <circle cx="125" cy="155" r="6" fill="#4B5563" />
+    
+    {/* Collar */}
+    <path d="M70 152 C70 147, 130 147, 130 152 L125 159 C125 159, 75 159, 75 159 Z" fill="#059669" stroke="black" strokeWidth="4" />
+    <circle cx="100" cy="158" r="7" fill="#FCD34D" stroke="black" strokeWidth="3" />
+    
+    {/* Left Ear */}
+    <path d="M50 72 C35 60, 30 100, 42 120 C48 125, 60 100, 58 85 Z" fill="#1F2937" stroke="black" strokeWidth="4" />
+    {/* Right Ear */}
+    <path d="M150 72 C165 60, 170 100, 158 120 C152 125, 140 100, 142 85 Z" fill="#1F2937" stroke="black" strokeWidth="4" />
+    
+    {/* Face/Head */}
+    <circle cx="100" cy="95" r="48" fill="#FDF0D5" stroke="black" strokeWidth="4" />
+    
+    {/* Eye Spot */}
+    <circle cx="118" cy="90" r="16" fill="#D97706" />
+    
+    {/* Eyes */}
+    <circle cx="82" cy="90" r="8" fill="black" />
+    <circle cx="80" cy="88" r="3" fill="white" />
+    <circle cx="118" cy="90" r="8" fill="black" />
+    <circle cx="116" cy="90" r="3" fill="white" />
+    
+    {/* Snout */}
+    <ellipse cx="100" cy="115" rx="16" ry="10" fill="#FFFFFF" stroke="black" strokeWidth="3" />
+    
+    {/* Nose */}
+    <ellipse cx="100" cy="111" rx="8" ry="5" fill="black" />
+    
+    {/* Mouth */}
+    <path d="M92 118 Q100 126 108 118" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" />
+    
+    {/* Cheeks */}
+    <circle cx="66" cy="106" r="4" fill="#FCA5A5" opacity="0.7" />
+    <circle cx="134" cy="106" r="4" fill="#FCA5A5" opacity="0.7" />
+  </svg>
+);
 
 // --- Icons ---
 const PawIcon = () => (
-  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 2.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 5.5c-2.5 0-4.5 2-4.5 4.5v2.5h9v-2.5c0-2.5-2-4.5-4.5-4.5z" />
+  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+    <circle cx="11" cy="4" r="2" />
+    <circle cx="18" cy="8" r="2" />
+    <circle cx="20" cy="16" r="2" />
+    <circle cx="4" cy="14" r="2" />
+    <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z" />
   </svg>
 );
 
@@ -158,11 +260,7 @@ const Index = () => {
             
             <div className="mt-12 relative group-hover:scale-105 transition-transform duration-500">
               <div className="absolute inset-0 bg-emerald-400/30 rounded-full blur-2xl transform scale-110 animate-pulse"></div>
-              <img 
-                src={nd1} 
-                className="relative w-64 h-64 object-cover rounded-full border-8 border-white shadow-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500" 
-                alt="Adoption dog" 
-              />
+              <AdoptDogSVG />
             </div>
           </motion.div>
 
@@ -200,11 +298,7 @@ const Index = () => {
             
             <div className="mt-12 relative group-hover:scale-105 transition-transform duration-500">
               <div className="absolute inset-0 bg-yellow-200/50 rounded-full blur-2xl transform scale-110 animate-pulse"></div>
-              <img 
-                src={nd2} 
-                className="relative w-64 h-64 object-cover rounded-full border-8 border-white shadow-2xl -rotate-3 group-hover:-rotate-6 transition-transform duration-500" 
-                alt="Sale dog" 
-              />
+              <RehomeDogSVG />
             </div>
           </motion.div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useUser } from "../../utils/Usercontext";
 import { usePosts } from "../../hooks/usePosts";
 import { useSwal } from "@utils/Customswal.jsx";
@@ -713,16 +714,66 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const EmptyState = () => (
-  <div className="container mx-auto p-4 text-center">
-    <h2 className="text-3xl font-bold mb-4 text-gray-700">No Posts Yet</h2>
-    <p className="text-xl text-gray-600 mb-8">
-      You haven't created any pet listings yet.
-    </p>
-    <button className="bg-green-500 text-white px-6 py-3 rounded-full text-lg hover:bg-green-600 transition-colors">
-      Create Your First Listing
-    </button>
-  </div>
-);
+const EmptyState = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center max-w-lg mx-auto h-full">
+      {/* SVG Illustration Container */}
+      <div className="relative mb-8 w-44 h-44 bg-[#FFF9E6] border-4 border-black rounded-full flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <svg viewBox="0 0 100 100" className="w-28 h-28 text-stone-800 animate-bounce" style={{ animationDuration: '3s' }}>
+          {/* Ears */}
+          <path d="M25,30 Q15,10 35,20 Z" fill="#FCD34D" stroke="black" strokeWidth="3" strokeLinejoin="round" />
+          <path d="M75,30 Q85,10 65,20 Z" fill="#FCD34D" stroke="black" strokeWidth="3" strokeLinejoin="round" />
+          
+          {/* Face/Head */}
+          <circle cx="50" cy="50" r="30" fill="white" stroke="black" strokeWidth="3" />
+          
+          {/* Eye Patches */}
+          <ellipse cx="40" cy="45" rx="8" ry="10" fill="#E7E5E4" />
+          
+          {/* Eyes */}
+          <circle cx="40" cy="45" r="4" fill="black" />
+          <circle cx="60" cy="45" r="4" fill="black" />
+          
+          {/* Snout */}
+          <ellipse cx="50" cy="60" rx="14" ry="10" fill="#FDE047" stroke="black" strokeWidth="3" />
+          
+          {/* Nose */}
+          <polygon points="45,55 55,55 50,62" fill="black" stroke="black" strokeWidth="1" strokeLinejoin="round" />
+          
+          {/* Mouth */}
+          <path d="M47,65 Q50,68 53,65" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        
+        {/* Playful Floating Badges */}
+        <div className="absolute -top-2 -right-4 bg-[#10B981] text-white border-2 border-black px-2.5 py-1 rounded-lg font-bold text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rotate-6">
+          Hello! 🐾
+        </div>
+        <div className="absolute -bottom-2 -left-6 bg-[#FCD34D] text-black border-2 border-black px-2.5 py-1 rounded-lg font-bold text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-6">
+          Woof!
+        </div>
+      </div>
+
+      {/* Text Content */}
+      <h2 className="text-3xl font-black font-serif text-gray-900 mb-3 tracking-tight">
+        No Listings <span className="underline decoration-4 decoration-[#FCD34D] underline-offset-4">Found</span>
+      </h2>
+      <p className="text-gray-500 font-semibold text-sm mb-8 leading-relaxed max-w-sm">
+        Your pet shelf is looking a bit lonely. Share a listing and find a loving companion today!
+      </p>
+
+      {/* Neubrutalist Button */}
+      <button
+        onClick={() => navigate("/create-post")}
+        className="group relative px-8 py-4 bg-[#10B981] text-white font-black rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all flex items-center gap-3 text-lg cursor-pointer animate-pulse"
+      >
+        <span>Create Your First Listing</span>
+        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </button>
+    </div>
+  );
+};
 
 export default UserPosts;

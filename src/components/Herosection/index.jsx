@@ -6,8 +6,12 @@ import img1 from '../../assets/images/herosectionvideo.jpg'; // Make sure path i
 
 // Icons
 const PawIcon = () => (
-  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 2.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 5.5c-2.5 0-4.5 2-4.5 4.5v2.5h9v-2.5c0-2.5-2-4.5-4.5-4.5z" />
+  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+    <circle cx="11" cy="4" r="2" />
+    <circle cx="18" cy="8" r="2" />
+    <circle cx="20" cy="16" r="2" />
+    <circle cx="4" cy="14" r="2" />
+    <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z" />
   </svg>
 );
 
@@ -29,28 +33,51 @@ const ScrollIndicator = () => (
   </div>
 );
 
-const FloatingPaws = () => (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 opacity-20">
-    {[...Array(6)].map((_, i) => (
-      <motion.div
-        key={i}
-        initial={{ y: "110%", x: `${Math.random() * 100}%`, rotate: Math.random() * 360 }}
-        animate={{ y: "-10%", x: `${Math.random() * 100}%`, rotate: Math.random() * 360 }}
-        transition={{ 
-          duration: 15 + Math.random() * 10, 
-          repeat: Infinity, 
-          delay: i * 2,
-          ease: "linear" 
-        }}
-        className="absolute text-white"
-      >
-        <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 5.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 2.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5 5.5c-2.5 0-4.5 2-4.5 4.5v2.5h9v-2.5c0-2.5-2-4.5-4.5-4.5z" />
-        </svg>
-      </motion.div>
-    ))}
-  </div>
-);
+const FloatingPaws = () => {
+  const paws = React.useMemo(() => {
+    return [...Array(8)].map((_, i) => ({
+      left: `${5 + Math.random() * 90}%`,
+      delay: i * 2,
+      duration: 15 + Math.random() * 10,
+      size: 24 + Math.random() * 24, // Random size between 24px and 48px
+      startRotation: Math.random() * 360,
+      endRotation: Math.random() * 360 + 360, // rotate at least once
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-10 opacity-20">
+      {paws.map((paw, i) => (
+        <motion.div
+          key={i}
+          initial={{ y: 50, x: 0, rotate: paw.startRotation }}
+          animate={{ y: "-95vh", x: [0, 15, -15, 0], rotate: paw.endRotation }}
+          transition={{ 
+            duration: paw.duration, 
+            repeat: Infinity, 
+            delay: paw.delay,
+            ease: "linear" 
+          }}
+          className="absolute text-white"
+          style={{ 
+            left: paw.left,
+            bottom: 0,
+            width: paw.size,
+            height: paw.size
+          }}
+        >
+          <svg className="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="11" cy="4" r="2" />
+            <circle cx="18" cy="8" r="2" />
+            <circle cx="20" cy="16" r="2" />
+            <circle cx="4" cy="14" r="2" />
+            <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z" />
+          </svg>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
 const HeroSection = () => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);

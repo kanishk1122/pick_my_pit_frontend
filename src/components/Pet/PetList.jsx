@@ -168,25 +168,41 @@ const PetList = () => {
   return (
     // Global Background: Cream/Off-white
     <div className="min-h-screen bg-[#FDFCF8]">
-      {/* Hero Section: Solid Sage Green with soft rounded bottom */}
-      <div className="bg-emerald-600 text-white py-12 md:py-16 px-4 rounded-b-[2.5rem] shadow-sm mb-8">
-        <div className="container mx-auto text-center md:text-left">
-          <h1 className="text-3xl md:text-5xl font-bold mb-3 font-serif tracking-wide">
-            Find Your Perfect Companion 🐾
-          </h1>
-          <p className="text-base md:text-lg text-emerald-50 max-w-2xl font-medium opacity-90">
-            Browse through our collection of adorable pets waiting for a loving
-            home.
-          </p>
+      
+      {/* Hero Section Card */}
+      <div className="mx-auto px-4 mb-12 mt-6">
+        <div className="bg-emerald-600 text-white py-12 md:py-16 px-8 md:px-12 rounded-[2.5rem] border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+          <div className="relative z-10 max-w-2xl">
+            <span className="bg-emerald-800/40 text-emerald-50 border border-emerald-400/30 text-xs font-black px-4 py-2 rounded-full mb-4 inline-block tracking-widest uppercase">
+              🐾 BROWSE COMPANIONS
+            </span>
+            <h1 className="text-4xl md:text-6xl font-black mb-4 font-serif leading-tight">
+              Find Your Perfect <br/>
+              <span className="text-[#FCD34D] italic">Companion</span>
+            </h1>
+            <p className="text-lg md:text-xl text-emerald-50 font-medium opacity-90 leading-relaxed">
+              Explore adorable pets waiting for a loving family. Start your journey with trust, joy, and wagging tails.
+            </p>
+          </div>
+          {/* Decorative floating paws background */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 right-10 text-white/5 pointer-events-none select-none hidden md:block">
+            <svg className="w-64 h-64" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="11" cy="4" r="2" />
+              <circle cx="18" cy="8" r="2" />
+              <circle cx="20" cy="16" r="2" />
+              <circle cx="4" cy="14" r="2" />
+              <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z" />
+            </svg>
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 pb-12">
+      <div className=" mx-auto px-4 pb-20">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar - Desktop */}
-          <div className="hidden lg:block lg:w-72 flex-shrink-0">
-            {/* Sidebar Container: White with Stone Border & Bubbly Corners */}
-            <div className="sticky top-6 bg-white border border-stone-200 rounded-[2rem] p-6 shadow-sm">
+          <div className="hidden lg:block lg:w-80 flex-shrink-0">
+            <div className="sticky top-28 bg-[#FFFDF5] border-2 border-black rounded-[2rem] p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <FilterSidebar
                 initialFilters={filters}
                 onFilterChange={handleFilterChange}
@@ -201,7 +217,7 @@ const PetList = () => {
             <div className="lg:hidden mb-6">
               <button
                 onClick={() => setIsMobileFilterOpen(true)}
-                className="w-full bg-white border border-stone-200 rounded-2xl p-4 flex items-center justify-center gap-2 text-stone-600 font-bold hover:border-emerald-400 hover:text-emerald-600 transition-all shadow-sm"
+                className="w-full bg-white border-2 border-black rounded-2xl p-4 flex items-center justify-center gap-2 text-stone-900 font-bold hover:bg-emerald-50 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               >
                 <FilterIcon />
                 Filters & Sort
@@ -224,10 +240,10 @@ const PetList = () => {
                     animate={{ x: 0 }}
                     exit={{ x: "100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="fixed right-0 top-0 h-full w-[90%] max-w-sm bg-white z-[101] shadow-2xl overflow-y-auto"
+                    className="fixed right-0 top-0 h-full w-[90%] max-w-sm bg-[#FDFCF8] border-l-2 border-black z-[101] shadow-2xl overflow-y-auto"
                   >
                     <div className="p-6">
-                      <div className="flex justify-between items-center mb-6 border-b border-stone-100 pb-4">
+                      <div className="flex justify-between items-center mb-6 border-b-2 border-black pb-4">
                         <h2 className="text-xl font-bold text-stone-800">Filters</h2>
                         <button
                           onClick={() => setIsMobileFilterOpen(false)}
@@ -253,7 +269,7 @@ const PetList = () => {
             </AnimatePresence>
 
             {/* Post Slicer (Control Bar) Container */}
-            <div className="bg-white border border-stone-200 rounded-[1.5rem] mb-6 shadow-sm overflow-hidden p-1">
+            <div className="bg-[#FFFDF5] border-2 border-black rounded-[2rem] mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden p-2">
               <PostSlicer
                 currentSort={filters.sortBy}
                 currentViewMode={viewMode}
@@ -267,7 +283,7 @@ const PetList = () => {
 
             {/* Loading State */}
             {loading && (
-              <div className="flex justify-center items-center py-24 bg-white border border-dashed border-stone-200 rounded-[2.5rem]">
+              <div className="flex justify-center items-center py-24 bg-white border-2 border-dashed border-stone-300 rounded-[2.5rem] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-200 border-t-emerald-600 mx-auto mb-4"></div>
                   <p className="text-stone-500 font-medium animate-pulse">
@@ -279,7 +295,7 @@ const PetList = () => {
 
             {/* Pet List Container */}
             {!loading && (
-              <div className="bg-white border border-stone-200 rounded-[2.5rem] p-4 md:p-8 min-h-[600px] shadow-sm">
+              <div className="bg-white border-2 border-black rounded-[2.5rem] p-4 md:p-8 min-h-[600px] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
                 <FilteredPetList
                   posts={posts}
                   viewMode={viewMode}
